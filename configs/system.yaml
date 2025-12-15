@@ -1,0 +1,39 @@
+# 系统级配置（预算 / 阈值）
+
+system:
+  name: "Agentic AI Delivery OS"
+  version: "0.1.0"
+
+budget:
+  default_max_cost: 1000.0
+  cost_alert_threshold: 0.8
+  cost_termination_threshold: 1.0
+
+thresholds:
+  max_failure_retries: 3
+  human_intervention_trigger: 5
+  evaluation_quality_gate: 0.7
+
+agents:
+  product:
+    enabled: true
+  orchestrator:
+    enabled: true
+  data:
+    enabled: true
+  execution:
+    enabled: true
+  evaluation:
+    enabled: true
+  cost:
+    enabled: true
+
+llm:
+  provider: qwen  # qwen | openai
+  model: qwen-turbo  # 默认模型，可通过环境变量覆盖
+  timeout_sec: 20
+  max_retries: 2
+  temperature: 0.0
+  max_tokens: 512
+  top_p: 1.0
+

@@ -1,0 +1,27 @@
+{
+  "tenant_id": "tenant_example_001",
+  "tenant_name": "Example Tenant",
+  "created_at": "2024-01-01T00:00:00",
+  "api_key": "example_api_key_redacted",
+  "api_key_hash": "sha256:example_hash",
+  "rate_limit": 100,
+  "quota": {
+    "task_count": 1000,
+    "token_usage": 1000000,
+    "tool_calls": 10000
+  },
+  "roles": {
+    "owner": ["user_001"],
+    "operator": ["user_002"],
+    "viewer": ["user_003"]
+  },
+  "metadata": {
+    "usage": {
+      "task_count": 10,
+      "token_usage": 50000,
+      "tool_calls": 100
+    }
+  }
+}
+
+

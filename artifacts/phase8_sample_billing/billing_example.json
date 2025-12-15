@@ -1,0 +1,28 @@
+{
+  "tenant_id": "tenant_example_001",
+  "period": {
+    "start": "2024-01-01T00:00:00",
+    "end": "2024-01-31T23:59:59"
+  },
+  "task_count": 10,
+  "token_usage": 50000,
+  "tool_calls": 100,
+  "total_actual_cost": "15.50",
+  "total_forecast_cost": "14.00",
+  "total_delta": "1.50",
+  "evidence_source": "system_trace",
+  "billing_hash": "sha256:example_billing_hash",
+  "reconciliation_records": [
+    {
+      "task_id": "task_001",
+      "forecast_cost": "1.40",
+      "actual_cost": "1.55",
+      "delta": "0.15",
+      "delta_percent": 10.7,
+      "trace_ref": "artifacts/tenants/tenant_example_001/tasks/task_001/system_trace.json",
+      "reconciliation_hash": "sha256:example_reconciliation_hash"
+    }
+  ]
+}
+
+

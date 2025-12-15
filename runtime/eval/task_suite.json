@@ -1,0 +1,151 @@
+{
+  "version": "1.0",
+  "suite_name": "Phase 7 Evaluation Task Suite",
+  "suite_description": "固定、冻结、不可调参的评测任务集",
+  "tasks": [
+    {
+      "task_id": "task_001_rag_basic",
+      "task_name": "基础 RAG 构建任务",
+      "task_description": "构建一个基础的 RAG 系统，包含数据接入、索引构建、查询接口",
+      "fixed_input_spec": {
+        "project_name": "basic_rag",
+        "data_sources": ["local_documents"],
+        "embedding_model": "default",
+        "vector_store": "faiss",
+        "budget_limit": 100.0
+      },
+      "fixed_input_hash": "sha256:placeholder",
+      "success_criteria": {
+        "must_complete": true,
+        "must_have_artifacts": ["config.yaml", "index.bin"],
+        "must_execute_agents": ["Product", "Data", "Execution", "Evaluation"]
+      },
+      "failure_acceptance_criteria": {
+        "allowed_failure_types": [],
+        "allowed_execution_modes": ["NORMAL", "DEGRADED"]
+      },
+      "allowed_execution_modes": ["NORMAL", "DEGRADED", "MINIMAL"],
+      "expected_risk_profile": {
+        "budget": "medium",
+        "risk": "low",
+        "latency": "medium"
+      },
+      "prohibited_actions": [
+        "network_access_external",
+        "file_write_outside_artifacts",
+        "dangerous_tools"
+      ],
+      "evidence_requirements": {
+        "must_have_events": ["agent_report", "governance_decision", "plan_selection"],
+        "must_have_fields": ["execution_plan", "cost_summary"]
+      },
+      "notes": "标准 RAG 构建流程，用于验证系统基本能力"
+    },
+    {
+      "task_id": "task_002_conflict_constraints",
+      "task_name": "含冲突约束的交付任务",
+      "task_description": "处理包含冲突约束的任务（例如：低成本 + 高质量 + 快速交付）",
+      "fixed_input_spec": {
+        "project_name": "conflict_rag",
+        "data_sources": ["large_dataset"],
+        "budget_limit": 50.0,
+        "quality_requirement": "high",
+        "latency_requirement": "low"
+      },
+      "fixed_input_hash": "sha256:placeholder",
+      "success_criteria": {
+        "must_complete": true,
+        "must_resolve_conflicts": true
+      },
+      "failure_acceptance_criteria": {
+        "allowed_failure_types": ["cost_issue", "spec_issue"],
+        "allowed_execution_modes": ["PAUSED", "DEGRADED"]
+      },
+      "allowed_execution_modes": ["NORMAL", "DEGRADED", "MINIMAL", "PAUSED"],
+      "expected_risk_profile": {
+        "budget": "tight",
+        "risk": "high",
+        "latency": "tight"
+      },
+      "prohibited_actions": [],
+      "evidence_requirements": {
+        "must_have_events": ["governance_decision", "conflict_detection"],
+        "must_have_fields": ["conflicts", "governance_decisions"]
+      },
+      "notes": "用于验证系统处理冲突约束的能力"
+    },
+    {
+      "task_id": "task_003_budget_tight",
+      "task_name": "高成本风险任务（预算紧约束）",
+      "task_description": "预算非常紧张的任务，必须通过降级或暂停才能正确失败",
+      "fixed_input_spec": {
+        "project_name": "tight_budget_rag",
+        "data_sources": ["very_large_dataset"],
+        "budget_limit": 10.0,
+        "complexity": "high"
+      },
+      "fixed_input_hash": "sha256:placeholder",
+      "success_criteria": {
+        "must_complete": false,
+        "must_trigger_cost_governance": true
+      },
+      "failure_acceptance_criteria": {
+        "allowed_failure_types": ["cost_issue"],
+        "allowed_execution_modes": ["DEGRADED", "MINIMAL", "PAUSED"],
+        "correct_failure_conditions": {
+          "must_trigger_budget_exceeded": true,
+          "must_switch_to_degraded_or_minimal": true
+        }
+      },
+      "allowed_execution_modes": ["DEGRADED", "MINIMAL", "PAUSED", "FAILED"],
+      "expected_risk_profile": {
+        "budget": "very_tight",
+        "risk": "high",
+        "latency": "medium"
+      },
+      "prohibited_actions": [],
+      "evidence_requirements": {
+        "must_have_events": ["cost_update", "governance_decision", "plan_switch"],
+        "must_have_fields": ["cost_summary", "plan_selection_history"]
+      },
+      "notes": "用于验证系统在预算约束下的正确失败能力"
+    },
+    {
+      "task_id": "task_004_allowed_failure",
+      "task_name": "系统被允许失败的任务",
+      "task_description": "明确允许系统失败的任务（例如：数据不可用、需求不明确）",
+      "fixed_input_spec": {
+        "project_name": "allowed_failure_rag",
+        "data_sources": [],
+        "requirements": "unclear",
+        "budget_limit": 1000.0
+      },
+      "fixed_input_hash": "sha256:placeholder",
+      "success_criteria": {
+        "must_complete": false
+      },
+      "failure_acceptance_criteria": {
+        "allowed_failure_types": ["data_issue", "spec_issue"],
+        "allowed_execution_modes": ["PAUSED", "FAILED"],
+        "correct_failure_conditions": {
+          "must_pause_or_fail_gracefully": true,
+          "must_provide_clear_reason": true
+        }
+      },
+      "allowed_execution_modes": ["PAUSED", "FAILED"],
+      "expected_risk_profile": {
+        "budget": "high",
+        "risk": "critical",
+        "latency": "low"
+      },
+      "prohibited_actions": [],
+      "evidence_requirements": {
+        "must_have_events": ["governance_decision", "evaluation_feedback"],
+        "must_have_fields": ["failure_type", "blame_hint"]
+      },
+      "notes": "用于验证系统正确失败的能力（failure_acceptance_criteria 明确）"
+    }
+  ]
+}
+
+

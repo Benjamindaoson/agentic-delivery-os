@@ -1,0 +1,36 @@
+{
+  "incident_id": "incident_20240101_000000",
+  "alert_id": "alert_20240101_000000_rule_001",
+  "severity": "critical",
+  "description": "Success rate dropped below threshold (0.85 < 0.90)",
+  "timestamp": "2024-01-01T00:00:00",
+  "resolved": true,
+  "resolution": "Identified root cause: high failure rate in task_005. Applied throttle to reduce load.",
+  "runbook_ref": "docs/phase8_operational_runbook.md#section-6.1",
+  "related_alerts": [
+    {
+      "alert_id": "alert_20240101_000000_rule_001",
+      "rule_id": "rule_001",
+      "metric_name": "success_rate",
+      "metric_value": 0.85,
+      "threshold": 0.90,
+      "severity": "critical",
+      "action": "pause"
+    }
+  ],
+  "resolution_steps": [
+    "1. Checked health check endpoint: http://localhost:8000/health/detailed",
+    "2. Reviewed recent alerts: artifacts/monitoring/alerts.jsonl",
+    "3. Analyzed trace: artifacts/tenants/tenant_example_001/tasks/task_005/system_trace.json",
+    "4. Identified root cause: high failure rate in task_005",
+    "5. Applied throttle to reduce load",
+    "6. Verified resolution: success_rate returned to 0.92"
+  ],
+  "evidence_files": [
+    "artifacts/monitoring/alerts.jsonl",
+    "artifacts/tenants/tenant_example_001/tasks/task_005/system_trace.json",
+    "artifacts/monitoring/incidents.jsonl"
+  ]
+}
+
+

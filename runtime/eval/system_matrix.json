@@ -1,0 +1,69 @@
+{
+  "version": "1.0",
+  "matrix_name": "Phase 7 System Comparison Matrix",
+  "matrix_description": "对照系统定义",
+  "systems": [
+    {
+      "system_id": "naive_agent",
+      "system_name": "Naive Agent",
+      "system_description": "单 Agent，无治理，无显式失败策略，无成本剪枝",
+      "characteristics": {
+        "agent_count": 1,
+        "has_governance": false,
+        "has_failure_strategy": false,
+        "has_cost_pruning": false,
+        "has_plan_selection": false
+      },
+      "implementation_path": "runtime/baselines/naive_agent.py",
+      "version": "1.0"
+    },
+    {
+      "system_id": "planner_executor",
+      "system_name": "Planner Executor",
+      "system_description": "有规划 + 执行，无成本治理，无失败回流闭环，无 conflict hard gate",
+      "characteristics": {
+        "agent_count": 2,
+        "has_governance": false,
+        "has_failure_strategy": false,
+        "has_cost_pruning": false,
+        "has_plan_selection": true,
+        "has_conflict_detection": false
+      },
+      "implementation_path": "runtime/baselines/planner_executor.py",
+      "version": "1.0"
+    },
+    {
+      "system_id": "llm_heavy_agent",
+      "system_name": "LLM Heavy Agent",
+      "system_description": "高推理深度/多轮，高成本，不限制失败路径，允许更聪明但不可控",
+      "characteristics": {
+        "agent_count": 1,
+        "has_governance": false,
+        "has_failure_strategy": false,
+        "has_cost_pruning": false,
+        "llm_usage": "heavy",
+        "max_iterations": 10
+      },
+      "implementation_path": "runtime/baselines/llm_heavy_agent.py",
+      "version": "1.0"
+    },
+    {
+      "system_id": "full_system",
+      "system_name": "Full System (Our Implementation)",
+      "system_description": "完整系统：多 Agent、治理、失败回流、成本剪枝、ExecutionPlan",
+      "characteristics": {
+        "agent_count": 6,
+        "has_governance": true,
+        "has_failure_strategy": true,
+        "has_cost_pruning": true,
+        "has_plan_selection": true,
+        "has_conflict_detection": true,
+        "has_evaluation_feedback_loop": true
+      },
+      "implementation_path": "runtime/execution_graph/execution_engine.py",
+      "version": "1.0"
+    }
+  ]
+}
+
+

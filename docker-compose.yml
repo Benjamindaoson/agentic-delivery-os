@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: agentic_delivery_os_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-prod}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./artifacts/db.sqlite}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+    volumes:
+      - ./artifacts:/app/artifacts
+      - ./configs:/app/configs
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - agentic_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: agentic_delivery_os_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - agentic_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: agentic_delivery_os_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - agentic_network
+
+volumes:
+  redis_data:
+
+networks:
+  agentic_network:
+    driver: bridge
+
+

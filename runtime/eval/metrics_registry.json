@@ -1,0 +1,69 @@
+{
+  "version": "1.0",
+  "registry_name": "Phase 7 Metrics Registry",
+  "registry_description": "不可狡辩指标定义",
+  "metrics": [
+    {
+      "metric_id": "task_completion_rate",
+      "metric_name": "Task Completion Rate",
+      "definition": "完成任务的比例",
+      "formula": "completed_tasks / total_tasks",
+      "field_source": "execution_result.status == 'COMPLETED'",
+      "missing_handling": "count as failed",
+      "unit": "ratio",
+      "range": [0.0, 1.0]
+    },
+    {
+      "metric_id": "correct_failure_rate",
+      "metric_name": "Correct Failure Rate",
+      "definition": "符合 failure_acceptance_criteria 的失败比例",
+      "formula": "correct_failures / total_failures",
+      "field_source": "case_result.correct_failure == true",
+      "missing_handling": "count as incorrect failure",
+      "unit": "ratio",
+      "range": [0.0, 1.0]
+    },
+    {
+      "metric_id": "cost_per_successful_task",
+      "metric_name": "Cost per Successful Task",
+      "definition": "每个成功任务的平均成本",
+      "formula": "sum(cost for completed) / count(completed)",
+      "field_source": "case_result.cost where status == 'COMPLETED'",
+      "missing_handling": "exclude from calculation",
+      "unit": "USD",
+      "range": [0.0, null]
+    },
+    {
+      "metric_id": "cost_wasted_on_failed_paths",
+      "metric_name": "Cost Wasted on Failed Paths",
+      "definition": "失败路径浪费的成本",
+      "formula": "sum(cost for failed and incorrect_failure)",
+      "field_source": "case_result.cost where status != 'COMPLETED' and correct_failure == false",
+      "missing_handling": "count as wasted",
+      "unit": "USD",
+      "range": [0.0, null]
+    },
+    {
+      "metric_id": "recovery_success_rate",
+      "metric_name": "Recovery Success Rate",
+      "definition": "从失败中恢复成功的比例",
+      "formula": "recovered_tasks / failed_tasks",
+      "field_source": "trace.governance_decisions with execution_mode change",
+      "missing_handling": "count as no recovery",
+      "unit": "ratio",
+      "range": [0.0, 1.0]
+    },
+    {
+      "metric_id": "mean_replay_length",
+      "metric_name": "Mean Replay Length",
+      "definition": "平均回放长度（事件数量）",
+      "formula": "sum(replay_length) / count(tasks)",
+      "field_source": "replay_view.total_events",
+      "missing_handling": "use 0",
+      "unit": "events",
+      "range": [0, null]
+    }
+  ]
+}
+
+
