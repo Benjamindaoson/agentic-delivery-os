@@ -15,6 +15,8 @@ This module upgrades the previous rules-based selector into an algorithmic decis
 }
 ```
 
+Use `PipelineDecisionResult.to_dict()` to obtain a JSON-serializable dictionary for storage or downstream APIs.
+
 ## Cost-Sensitive Risk Scoring
 
 *Problem definition*: `risk_score` represents expected cost of error (not probability) given context.
