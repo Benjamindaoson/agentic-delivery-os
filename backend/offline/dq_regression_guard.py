@@ -11,7 +11,7 @@ from typing import Dict, Any, List
 
 METRIC_NAMES = [
     "ocr_coverage",
-    "table_recovery_f1",
+    "table_recovery_rate",
     "empty_page_ratio",
     "duplicate_page_ratio",
 ]
@@ -37,8 +37,8 @@ def check_dq_regression(
 
     failed: List[str] = []
 
-    # coverage / f1: higher is better
-    for name in ("ocr_coverage", "table_recovery_f1"):
+    # coverage / recovery quality: higher is better
+    for name in ("ocr_coverage", "table_recovery_rate"):
         if name in current_metrics and name in previous_metrics:
             try:
                 cur = float(current_metrics[name])

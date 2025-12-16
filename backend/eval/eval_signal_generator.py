@@ -83,7 +83,8 @@ def generate_eval_signals(eval_report: Dict[str, Any], coverage_matrix: Dict[str
             }
         )
 
-    result = {"signals": signals}
+    # Persist coverage to make absence/presence of metrics explicit for learning.
+    result = {"signals": signals, "coverage_matrix": dict(coverage_matrix)}
 
     os.makedirs(os.path.dirname(EVAL_SIGNAL_PATH), exist_ok=True)
     with open(EVAL_SIGNAL_PATH, "w", encoding="utf-8") as f:

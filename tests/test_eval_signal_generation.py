@@ -33,6 +33,7 @@ def test_eval_signal_generated_for_abnormal_metrics(tmp_path, monkeypatch):
     with open(EVAL_SIGNAL_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
     assert len(data["signals"]) == len(signals)
+    assert data["coverage_matrix"] == coverage
 
 
 def test_eval_signal_not_generated_when_metrics_normal(tmp_path, monkeypatch):
@@ -52,6 +53,7 @@ def test_eval_signal_not_generated_when_metrics_normal(tmp_path, monkeypatch):
 
     # No signals expected when everything is within thresholds
     assert result["signals"] == []
+    assert result["coverage_matrix"] == coverage
 
 
 
