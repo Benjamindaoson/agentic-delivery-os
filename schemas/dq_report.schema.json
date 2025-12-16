@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DQReport",
+  "type": "object",
+  "required": ["metrics", "decision", "config_snapshot"],
+  "properties": {
+    "doc_id": {
+      "type": ["string", "null"]
+    },
+    "run_id": {
+      "type": ["string", "null"]
+    },
+    "metrics": {
+      "type": "object",
+      "required": [
+        "ocr_coverage",
+        "table_recovery_rate",
+        "empty_page_ratio",
+        "duplicate_page_ratio",
+        "language"
+      ],
+      "properties": {
+        "ocr_coverage": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "table_recovery_rate": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "empty_page_ratio": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "duplicate_page_ratio": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "language": {
+          "type": "string",
+          "enum": ["zh", "en", "mixed", "unknown"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "decision": {
+      "type": "object",
+      "required": ["level", "reasons"],
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["PASS", "WARN", "FAIL"]
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "config_snapshot": {
+      "type": "object",
+      "properties": {
+        "ocr_coverage_warn": { "type": "number" },
+        "ocr_coverage_fail": { "type": "number" },
+        "table_recovery_warn": { "type": "number" },
+        "table_recovery_fail": { "type": "number" },
+        "empty_page_ratio_warn": { "type": "number" },
+        "empty_page_ratio_fail": { "type": "number" },
+        "duplicate_page_ratio_warn": { "type": "number" },
+        "duplicate_page_ratio_fail": { "type": "number" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
+
+
+
+

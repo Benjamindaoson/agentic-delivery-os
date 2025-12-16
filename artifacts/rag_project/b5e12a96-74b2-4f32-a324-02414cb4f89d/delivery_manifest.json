@@ -1,0 +1,166 @@
+{
+  "task_id": "b5e12a96-74b2-4f32-a324-02414cb4f89d",
+  "spec": {
+    "audience": null,
+    "answerStyle": null,
+    "mustCite": null,
+    "dataSourceType": null,
+    "deploymentChannel": null,
+    "sloBudget": null
+  },
+  "decision_context": {
+    "intent": {
+      "intent_candidates": [
+        {
+          "intent_id": "general_information",
+          "confidence": 0.6,
+          "description": "General knowledge retrieval"
+        }
+      ],
+      "intent_uncertainty_level": "MEDIUM",
+      "risk_flags": [
+        "AMBIGUOUS_GOAL"
+      ],
+      "recommendation": "CLARIFY",
+      "reason_codes": [
+        "INPUT_EMPTY"
+      ]
+    },
+    "query": {
+      "original_query": "",
+      "rewritten_query": "",
+      "rewrite_diff": [],
+      "rewrite_justification": [
+        "NO_CHANGE"
+      ],
+      "confidence": 1.0,
+      "reason_codes": [
+        "UNCHANGED"
+      ]
+    },
+    "ranking": {
+      "ranked_candidates": [
+        {
+          "candidate_id": "baseline",
+          "score": -0.19100000000000003,
+          "pros": [],
+          "cons": [],
+          "rank": 1
+        },
+        {
+          "candidate_id": "enhanced",
+          "score": -0.255,
+          "pros": [
+            "HIGH_QUALITY"
+          ],
+          "cons": [
+            "HIGH_COST"
+          ],
+          "rank": 2
+        }
+      ],
+      "elimination_reasons": {
+        "enhanced": [
+          "HIGH_COST"
+        ]
+      },
+      "selection_confidence": 0.7,
+      "reason_codes": [
+        "MULTI_CRITERIA_SORT"
+      ]
+    },
+    "strategy": {
+      "current_strategy_mode": "AGGRESSIVE",
+      "strategy_reason": [
+        "SUCCESS_HISTORY"
+      ],
+      "allowed_actions": [
+        "PROCEED",
+        "EXPAND_SCOPE"
+      ],
+      "forbidden_actions": [
+        "LIMIT_SCOPE"
+      ],
+      "reason_codes": [
+        "SUCCESS_HISTORY"
+      ]
+    }
+  },
+  "executed_agents": [
+    "Product",
+    "Cost",
+    "Data",
+    "Cost",
+    "Execution",
+    "Cost",
+    "Evaluation"
+  ],
+  "agent_outputs": {
+    "Product": {
+      "decision": "proceed",
+      "reason": "Spec 验证通过",
+      "summary": {
+        "decision": "proceed",
+        "reason": "Spec 验证通过"
+      }
+    },
+    "Cost": {
+      "decision": "continue",
+      "reason": "成本检查：已使用 0.0，剩余 1000.0",
+      "summary": {
+        "decision": "continue",
+        "reason": "成本检查：已使用 0.0，剩余 1000.0",
+        "cost_usage": 0.0,
+        "budget_remaining": 1000.0
+      }
+    },
+    "Data": {
+      "decision": "data_ready",
+      "reason": "数据验证通过（占位实现）",
+      "summary": {
+        "decision": "data_ready",
+        "reason": "数据验证通过（占位实现）",
+        "data_manifest": {
+          "source": "placeholder",
+          "hash": "placeholder",
+          "version": "1.0",
+          "license": "placeholder",
+          "pii_level": "none"
+        }
+      }
+    },
+    "Execution": {
+      "decision": "execution_complete",
+      "reason": "工程执行完成",
+      "summary": {
+        "decision": "execution_complete",
+        "reason": "工程执行完成",
+        "artifacts": {
+          "config_generated": true,
+          "index_built": false,
+          "evaluation_run": false
+        }
+      }
+    },
+    "Evaluation": {
+      "decision": "passed",
+      "reason": "质量评测通过",
+      "summary": {
+        "decision": "passed",
+        "reason": "质量评测通过",
+        "evaluation_result": {
+          "quality_score": 0.85,
+          "grounded_rate": 1.0,
+          "latency_ms": 0,
+          "passed": true,
+          "failure_type": null,
+          "blame_hint": null
+        }
+      }
+    }
+  },
+  "final_state": "RUNNING",
+  "created_at": "2025-12-16T00:31:18.337004",
+  "failed": false,
+  "error": null
+}

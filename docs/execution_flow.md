@@ -62,3 +62,5 @@ RUNNING → FAILED
 4. 检查 `artifacts/rag_project/{task_id}/` 目录，应包含产物文件
 
 
+
+

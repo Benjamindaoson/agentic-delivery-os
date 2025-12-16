@@ -1,0 +1,948 @@
+{
+  "task_id": "131cc0c9-eebb-4218-93e4-e2c7535348a2",
+  "decision_context": {
+    "intent": {
+      "intent_candidates": [
+        {
+          "intent_id": "general_information",
+          "confidence": 0.6,
+          "description": "General knowledge retrieval"
+        }
+      ],
+      "intent_uncertainty_level": "MEDIUM",
+      "risk_flags": [
+        "AMBIGUOUS_GOAL"
+      ],
+      "recommendation": "CLARIFY",
+      "reason_codes": [
+        "INPUT_EMPTY"
+      ]
+    },
+    "query": {
+      "original_query": "",
+      "rewritten_query": "",
+      "rewrite_diff": [],
+      "rewrite_justification": [
+        "NO_CHANGE"
+      ],
+      "confidence": 1.0,
+      "reason_codes": [
+        "UNCHANGED"
+      ]
+    },
+    "ranking": {
+      "ranked_candidates": [
+        {
+          "candidate_id": "baseline",
+          "score": -0.19100000000000003,
+          "pros": [],
+          "cons": [],
+          "rank": 1
+        },
+        {
+          "candidate_id": "enhanced",
+          "score": -0.255,
+          "pros": [
+            "HIGH_QUALITY"
+          ],
+          "cons": [
+            "HIGH_COST"
+          ],
+          "rank": 2
+        }
+      ],
+      "elimination_reasons": {
+        "enhanced": [
+          "HIGH_COST"
+        ]
+      },
+      "selection_confidence": 0.7,
+      "reason_codes": [
+        "MULTI_CRITERIA_SORT"
+      ]
+    },
+    "strategy": {
+      "current_strategy_mode": "AGGRESSIVE",
+      "strategy_reason": [
+        "SUCCESS_HISTORY"
+      ],
+      "allowed_actions": [
+        "PROCEED",
+        "EXPAND_SCOPE"
+      ],
+      "forbidden_actions": [
+        "LIMIT_SCOPE"
+      ],
+      "reason_codes": [
+        "SUCCESS_HISTORY"
+      ]
+    }
+  },
+  "state_transitions": [
+    {
+      "from_state": "IDLE",
+      "to_state": "IDLE",
+      "reason": "Task created",
+      "timestamp": "2025-12-15 17:26:09"
+    },
+    {
+      "from_state": "IDLE",
+      "to_state": "SPEC_READY",
+      "reason": "Spec frozen, ready for execution",
+      "timestamp": "2025-12-15 17:26:09"
+    },
+    {
+      "from_state": "SPEC_READY",
+      "to_state": "RUNNING",
+      "reason": "Execution engine started",
+      "timestamp": "2025-12-15 17:26:09"
+    }
+  ],
+  "agent_executions": [
+    {
+      "agent": "Product",
+      "input": {
+        "context_keys": [
+          "spec",
+          "decision_context"
+        ],
+        "task_id": "131cc0c9-eebb-4218-93e4-e2c7535348a2"
+      },
+      "output": {
+        "decision": "proceed",
+        "reason": "Spec 验证通过",
+        "summary": {
+          "decision": "proceed",
+          "reason": "Spec 验证通过"
+        }
+      },
+      "llm_info": {
+        "llm_used": false,
+        "provider": "qwen",
+        "model_name": "qwen-turbo",
+        "prompt_version": null,
+        "sampling_params": null,
+        "timeout_sec": null,
+        "retries": 0,
+        "prompt_hash": "189541a56dec283d",
+        "output_hash": null,
+        "output_summary": null,
+        "fallback_used": true,
+        "failure_code": "llm_http_error",
+        "error": "API error 401: {'error': {'message': \"You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY). \", 'type': 'invalid_request_error', 'param': None, 'code': None}, 'request_id': '9780c84e-d100-43a3-8709-171c8a29aa93'}"
+      },
+      "timestamp": "2025-12-16T01:26:11.071317",
+      "status": "success"
+    },
+    {
+      "agent": "Cost",
+      "input": {
+        "context_keys": [
+          "spec",
+          "decision_context",
+          "product_agent_executed",
+          "spec_validated"
+        ],
+        "task_id": "131cc0c9-eebb-4218-93e4-e2c7535348a2"
+      },
+      "output": {
+        "decision": "continue",
+        "reason": "成本检查：已使用 0.0，剩余 1000.0",
+        "summary": {
+          "decision": "continue",
+          "reason": "成本检查：已使用 0.0，剩余 1000.0",
+          "cost_usage": 0.0,
+          "budget_remaining": 1000.0
+        }
+      },
+      "llm_info": {
+        "llm_used": false,
+        "provider": "qwen",
+        "model_name": "qwen-turbo",
+        "prompt_version": null,
+        "sampling_params": null,
+        "timeout_sec": null,
+        "retries": 0,
+        "prompt_hash": "843b60767978dd5a",
+        "output_hash": null,
+        "output_summary": null,
+        "fallback_used": true,
+        "failure_code": "llm_http_error",
+        "error": "API error 401: {'error': {'message': \"You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY). \", 'type': 'invalid_request_error', 'param': None, 'code': None}, 'request_id': 'bcdaf15a-5a35-4bc9-9559-a051bd685c3f'}"
+      },
+      "timestamp": "2025-12-16T01:26:12.174251",
+      "status": "success"
+    },
+    {
+      "agent": "Data",
+      "input": {
+        "context_keys": [
+          "spec",
+          "decision_context",
+          "product_agent_executed",
+          "spec_validated",
+          "cost_agent_executed",
+          "cost_usage",
+          "budget_remaining",
+          "cost_flags"
+        ],
+        "task_id": "131cc0c9-eebb-4218-93e4-e2c7535348a2"
+      },
+      "output": {
+        "decision": "data_ready",
+        "reason": "数据验证通过（占位实现）",
+        "summary": {
+          "decision": "data_ready",
+          "reason": "数据验证通过（占位实现）",
+          "data_manifest": {
+            "source": "placeholder",
+            "hash": "placeholder",
+            "version": "1.0",
+            "license": "placeholder",
+            "pii_level": "none"
+          }
+        }
+      },
+      "llm_info": null,
+      "timestamp": "2025-12-16T01:26:12.194569",
+      "status": "success"
+    },
+    {
+      "agent": "Cost",
+      "input": {
+        "context_keys": [
+          "spec",
+          "decision_context",
+          "product_agent_executed",
+          "spec_validated",
+          "cost_agent_executed",
+          "cost_usage",
+          "budget_remaining",
+          "cost_flags",
+          "data_agent_executed",
+          "data_manifest"
+        ],
+        "task_id": "131cc0c9-eebb-4218-93e4-e2c7535348a2"
+      },
+      "output": {
+        "decision": "continue",
+        "reason": "成本检查：已使用 0.0，剩余 1000.0",
+        "summary": {
+          "decision": "continue",
+          "reason": "成本检查：已使用 0.0，剩余 1000.0",
+          "cost_usage": 0.0,
+          "budget_remaining": 1000.0
+        }
+      },
+      "llm_info": {
+        "llm_used": false,
+        "provider": "qwen",
+        "model_name": "qwen-turbo",
+        "prompt_version": null,
+        "sampling_params": null,
+        "timeout_sec": null,
+        "retries": 0,
+        "prompt_hash": "843b60767978dd5a",
+        "output_hash": null,
+        "output_summary": null,
+        "fallback_used": true,
+        "failure_code": "llm_http_error",
+        "error": "API error 401: {'error': {'message': \"You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY). \", 'type': 'invalid_request_error', 'param': None, 'code': None}, 'request_id': 'c580f2e7-637d-46ba-83fd-aa55ba2063cd'}"
+      },
+      "timestamp": "2025-12-16T01:26:13.273775",
+      "status": "success"
+    },
+    {
+      "agent": "Execution",
+      "input": {
+        "context_keys": [
+          "spec",
+          "decision_context",
+          "product_agent_executed",
+          "spec_validated",
+          "cost_agent_executed",
+          "cost_usage",
+          "budget_remaining",
+          "cost_flags",
+          "data_agent_executed",
+          "data_manifest"
+        ],
+        "task_id": "131cc0c9-eebb-4218-93e4-e2c7535348a2"
+      },
+      "output": {
+        "decision": "execution_complete",
+        "reason": "工程执行完成",
+        "summary": {
+          "decision": "execution_complete",
+          "reason": "工程执行完成",
+          "artifacts": {
+            "config_generated": true,
+            "index_built": false,
+            "evaluation_run": false
+          }
+        }
+      },
+      "llm_info": null,
+      "timestamp": "2025-12-16T01:26:13.288613",
+      "status": "success",
+      "tool_executions": [
+        {
+          "tool_name": "file_write",
+          "success": true,
+          "output_summary": "File written: runtime/tools/sandbox\\131cc0c9-eebb-4218-93e4-e2c7535348a2\\config.yaml",
+          "error": null,
+          "exit_code": 0,
+          "execution_time_ms": 1.0018348693847656,
+          "validated": true,
+          "degrade_triggered": false,
+          "rollback_triggered": false,
+          "timestamp": "2025-12-16T01:26:13.288613"
+        }
+      ]
+    },
+    {
+      "agent": "Cost",
+      "input": {
+        "context_keys": [
+          "spec",
+          "decision_context",
+          "product_agent_executed",
+          "spec_validated",
+          "cost_agent_executed",
+          "cost_usage",
+          "budget_remaining",
+          "cost_flags",
+          "data_agent_executed",
+          "data_manifest",
+          "execution_agent_executed",
+          "artifacts"
+        ],
+        "task_id": "131cc0c9-eebb-4218-93e4-e2c7535348a2"
+      },
+      "output": {
+        "decision": "continue",
+        "reason": "成本检查：已使用 0.0，剩余 1000.0",
+        "summary": {
+          "decision": "continue",
+          "reason": "成本检查：已使用 0.0，剩余 1000.0",
+          "cost_usage": 0.0,
+          "budget_remaining": 1000.0
+        }
+      },
+      "llm_info": {
+        "llm_used": false,
+        "provider": "qwen",
+        "model_name": "qwen-turbo",
+        "prompt_version": null,
+        "sampling_params": null,
+        "timeout_sec": null,
+        "retries": 0,
+        "prompt_hash": "843b60767978dd5a",
+        "output_hash": null,
+        "output_summary": null,
+        "fallback_used": true,
+        "failure_code": "llm_http_error",
+        "error": "API error 401: {'error': {'message': \"You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY). \", 'type': 'invalid_request_error', 'param': None, 'code': None}, 'request_id': '64cd667c-4806-45ee-9707-cbd4306da992'}"
+      },
+      "timestamp": "2025-12-16T01:26:14.377592",
+      "status": "success"
+    },
+    {
+      "agent": "Evaluation",
+      "input": {
+        "context_keys": [
+          "spec",
+          "decision_context",
+          "product_agent_executed",
+          "spec_validated",
+          "cost_agent_executed",
+          "cost_usage",
+          "budget_remaining",
+          "cost_flags",
+          "data_agent_executed",
+          "data_manifest",
+          "execution_agent_executed",
+          "artifacts"
+        ],
+        "task_id": "131cc0c9-eebb-4218-93e4-e2c7535348a2"
+      },
+      "output": {
+        "decision": "passed",
+        "reason": "质量评测通过",
+        "summary": {
+          "decision": "passed",
+          "reason": "质量评测通过",
+          "evaluation_result": {
+            "quality_score": 0.85,
+            "grounded_rate": 1.0,
+            "latency_ms": 0,
+            "passed": true,
+            "failure_type": null,
+            "blame_hint": null
+          }
+        }
+      },
+      "llm_info": {
+        "llm_used": false,
+        "provider": "qwen",
+        "model_name": "qwen-turbo",
+        "prompt_version": null,
+        "sampling_params": null,
+        "timeout_sec": null,
+        "retries": 0,
+        "prompt_hash": "1b6b325a663d1539",
+        "output_hash": null,
+        "output_summary": null,
+        "fallback_used": true,
+        "failure_code": "llm_http_error",
+        "error": "API error 401: {'error': {'message': \"You didn't provide an API key. You need to provide your API key in an Authorization header using Bearer auth (i.e. Authorization: Bearer YOUR_KEY). \", 'type': 'invalid_request_error', 'param': None, 'code': None}, 'request_id': '9e9a9b82-f3b1-4ef4-8de1-c0b672e65b87'}"
+      },
+      "timestamp": "2025-12-16T01:26:15.496039",
+      "status": "success"
+    }
+  ],
+  "agent_reports": [
+    {
+      "agent_name": "Product",
+      "decision": "proceed",
+      "status": "success",
+      "confidence": 0.5,
+      "risk_level": "low",
+      "cost_impact": 0.0,
+      "signals": {
+        "llm_fallback": true,
+        "llm_failure_code": "llm_http_error"
+      },
+      "conflicts": [],
+      "llm_fallback_used": true,
+      "timestamp": "2025-12-16T01:26:11.071317"
+    },
+    {
+      "agent_name": "Cost",
+      "decision": "continue",
+      "status": "success",
+      "confidence": 0.5,
+      "risk_level": "low",
+      "cost_impact": 0.0,
+      "signals": {
+        "llm_fallback": true,
+        "llm_failure_code": "llm_http_error",
+        "budget_remaining": 1000.0
+      },
+      "conflicts": [],
+      "llm_fallback_used": true,
+      "timestamp": "2025-12-16T01:26:12.174251"
+    },
+    {
+      "agent_name": "Data",
+      "decision": "data_ready",
+      "status": "success",
+      "confidence": 1.0,
+      "risk_level": "low",
+      "cost_impact": 0.0,
+      "signals": {},
+      "conflicts": [],
+      "llm_fallback_used": false,
+      "timestamp": "2025-12-16T01:26:12.194569"
+    },
+    {
+      "agent_name": "Cost",
+      "decision": "continue",
+      "status": "success",
+      "confidence": 0.5,
+      "risk_level": "low",
+      "cost_impact": 0.0,
+      "signals": {
+        "llm_fallback": true,
+        "llm_failure_code": "llm_http_error",
+        "budget_remaining": 1000.0
+      },
+      "conflicts": [],
+      "llm_fallback_used": true,
+      "timestamp": "2025-12-16T01:26:13.273775"
+    },
+    {
+      "agent_name": "Execution",
+      "decision": "execution_complete",
+      "status": "success",
+      "confidence": 1.0,
+      "risk_level": "low",
+      "cost_impact": 0.0,
+      "signals": {},
+      "conflicts": [],
+      "llm_fallback_used": false,
+      "timestamp": "2025-12-16T01:26:13.288613"
+    },
+    {
+      "agent_name": "Cost",
+      "decision": "continue",
+      "status": "success",
+      "confidence": 0.5,
+      "risk_level": "low",
+      "cost_impact": 0.0,
+      "signals": {
+        "llm_fallback": true,
+        "llm_failure_code": "llm_http_error",
+        "budget_remaining": 1000.0
+      },
+      "conflicts": [],
+      "llm_fallback_used": true,
+      "timestamp": "2025-12-16T01:26:14.377592"
+    },
+    {
+      "agent_name": "Evaluation",
+      "decision": "passed",
+      "status": "success",
+      "confidence": 0.5,
+      "risk_level": "low",
+      "cost_impact": 0.0,
+      "signals": {
+        "llm_fallback": true,
+        "llm_failure_code": "llm_http_error"
+      },
+      "conflicts": [],
+      "llm_fallback_used": true,
+      "timestamp": "2025-12-16T01:26:15.496039"
+    }
+  ],
+  "governance_decisions": [
+    {
+      "execution_mode": "normal",
+      "restrictions": [],
+      "reasoning": "All checks passed. Proceeding with normal execution.",
+      "conflicts": [],
+      "metrics": {
+        "avg_confidence": 0.5,
+        "high_risk_count": 0,
+        "total_cost": 0.0,
+        "total_cost_impact": 0.0,
+        "budget_limit": 1000.0,
+        "budget_remaining": 1000.0,
+        "budget_utilization_percent": 0.0,
+        "llm_fallback_count": 1,
+        "llm_fallback_rate": 1.0
+      },
+      "checkpoint": "after_product"
+    },
+    {
+      "execution_mode": "normal",
+      "restrictions": [],
+      "reasoning": "All checks passed. Proceeding with normal execution.",
+      "conflicts": [],
+      "metrics": {
+        "avg_confidence": 0.5,
+        "high_risk_count": 0,
+        "total_cost": 0.0,
+        "total_cost_impact": 0.0,
+        "budget_limit": 1000.0,
+        "budget_remaining": 1000.0,
+        "budget_utilization_percent": 0.0,
+        "llm_fallback_count": 2,
+        "llm_fallback_rate": 1.0
+      },
+      "checkpoint": "after_cost_after_product"
+    },
+    {
+      "execution_mode": "normal",
+      "restrictions": [],
+      "reasoning": "All checks passed. Proceeding with normal execution.",
+      "conflicts": [],
+      "metrics": {
+        "avg_confidence": 0.6666666666666666,
+        "high_risk_count": 0,
+        "total_cost": 0.0,
+        "total_cost_impact": 0.0,
+        "budget_limit": 1000.0,
+        "budget_remaining": 1000.0,
+        "budget_utilization_percent": 0.0,
+        "llm_fallback_count": 2,
+        "llm_fallback_rate": 0.6666666666666666
+      },
+      "checkpoint": "after_data"
+    },
+    {
+      "execution_mode": "degraded",
+      "restrictions": [
+        "Multiple LLM fallbacks, using deterministic logic only"
+      ],
+      "reasoning": "LLM fallback count (3) exceeds threshold. Switching to degraded mode with deterministic logic.",
+      "conflicts": [],
+      "metrics": {
+        "avg_confidence": 0.625,
+        "high_risk_count": 0,
+        "total_cost": 0.0,
+        "total_cost_impact": 0.0,
+        "budget_limit": 1000.0,
+        "budget_remaining": 1000.0,
+        "budget_utilization_percent": 0.0,
+        "llm_fallback_count": 3,
+        "llm_fallback_rate": 0.75
+      },
+      "checkpoint": "after_cost_after_data"
+    },
+    {
+      "execution_mode": "degraded",
+      "restrictions": [
+        "Multiple LLM fallbacks, using deterministic logic only"
+      ],
+      "reasoning": "LLM fallback count (3) exceeds threshold. Switching to degraded mode with deterministic logic.",
+      "conflicts": [],
+      "metrics": {
+        "avg_confidence": 0.7,
+        "high_risk_count": 0,
+        "total_cost": 0.0,
+        "total_cost_impact": 0.0,
+        "budget_limit": 1000.0,
+        "budget_remaining": 1000.0,
+        "budget_utilization_percent": 0.0,
+        "llm_fallback_count": 3,
+        "llm_fallback_rate": 0.6
+      },
+      "checkpoint": "after_execution"
+    },
+    {
+      "execution_mode": "degraded",
+      "restrictions": [
+        "Multiple LLM fallbacks, using deterministic logic only"
+      ],
+      "reasoning": "LLM fallback count (4) exceeds threshold. Switching to degraded mode with deterministic logic.",
+      "conflicts": [],
+      "metrics": {
+        "avg_confidence": 0.6666666666666666,
+        "high_risk_count": 0,
+        "total_cost": 0.0,
+        "total_cost_impact": 0.0,
+        "budget_limit": 1000.0,
+        "budget_remaining": 1000.0,
+        "budget_utilization_percent": 0.0,
+        "llm_fallback_count": 4,
+        "llm_fallback_rate": 0.6666666666666666
+      },
+      "checkpoint": "after_cost_after_execution"
+    },
+    {
+      "execution_mode": "degraded",
+      "restrictions": [
+        "Multiple LLM fallbacks, using deterministic logic only"
+      ],
+      "reasoning": "LLM fallback count (5) exceeds threshold. Switching to degraded mode with deterministic logic.",
+      "conflicts": [],
+      "metrics": {
+        "avg_confidence": 0.6428571428571429,
+        "high_risk_count": 0,
+        "total_cost": 0.0,
+        "total_cost_impact": 0.0,
+        "budget_limit": 1000.0,
+        "budget_remaining": 1000.0,
+        "budget_utilization_percent": 0.0,
+        "llm_fallback_count": 5,
+        "llm_fallback_rate": 0.7142857142857143
+      },
+      "checkpoint": "after_evaluation"
+    }
+  ],
+  "execution_plan": {
+    "plan_id": "degraded_v1",
+    "plan_version": "1.0",
+    "path_type": "degraded",
+    "plan_definition": {
+      "plan_id": "degraded_v1",
+      "plan_version": "1.0",
+      "path_type": "degraded",
+      "description": "降级路径：跳过高风险节点，使用最小功能集",
+      "nodes": [
+        {
+          "node_id": "product",
+          "agent_name": "Product",
+          "description": "需求澄清与 Spec 验证",
+          "condition_type": "always",
+          "condition_rule": "Always execute",
+          "required": true,
+          "cost_estimate": 10.0,
+          "risk_level": "low"
+        },
+        {
+          "node_id": "cost_after_product",
+          "agent_name": "Cost",
+          "description": "成本检查（Product 后）",
+          "condition_type": "budget_check",
+          "condition_rule": "Execute if budget > 0",
+          "required": true,
+          "cost_estimate": 0.0,
+          "risk_level": "low"
+        },
+        {
+          "node_id": "data",
+          "agent_name": "Data",
+          "description": "数据接入与验证（简化）",
+          "condition_type": "evaluation_feedback",
+          "condition_rule": "Skip if last evaluation failed with data_issue, otherwise execute if budget > 50",
+          "required": false,
+          "cost_estimate": 30.0,
+          "risk_level": "low"
+        },
+        {
+          "node_id": "execution",
+          "agent_name": "Execution",
+          "description": "工程执行（最小功能）",
+          "condition_type": "budget_check",
+          "condition_rule": "Execute if budget > 100",
+          "required": true,
+          "cost_estimate": 100.0,
+          "risk_level": "low"
+        },
+        {
+          "node_id": "evaluation",
+          "agent_name": "Evaluation",
+          "description": "基础评测",
+          "condition_type": "always",
+          "condition_rule": "Always execute",
+          "required": true,
+          "cost_estimate": 20.0,
+          "risk_level": "low"
+        }
+      ]
+    },
+    "plan_selection_history": [
+      {
+        "selected_plan_id": "normal_v1",
+        "selected_plan_version": "1.0",
+        "path_type": "normal",
+        "reasoning": "Governance mode: normal",
+        "governance_mode": "normal",
+        "signals_used": {
+          "budget_remaining": 1000.0,
+          "last_evaluation_failed": false
+        }
+      },
+      {
+        "selected_plan_id": "degraded_v1",
+        "selected_plan_version": "1.0",
+        "path_type": "degraded",
+        "reasoning": "Governance mode: degraded",
+        "governance_mode": "degraded",
+        "signals_used": {
+          "budget_remaining": 1000.0,
+          "last_evaluation_failed": false
+        },
+        "trigger": "budget_or_governance_change"
+      }
+    ],
+    "executed_nodes": [
+      {
+        "node_id": "Product",
+        "agent_name": "Product",
+        "timestamp": "2025-12-16T01:26:11.071317",
+        "tool_executions": []
+      },
+      {
+        "node_id": "Cost",
+        "agent_name": "Cost",
+        "timestamp": "2025-12-16T01:26:12.174251",
+        "tool_executions": []
+      },
+      {
+        "node_id": "Data",
+        "agent_name": "Data",
+        "timestamp": "2025-12-16T01:26:12.194569",
+        "tool_executions": []
+      },
+      {
+        "node_id": "Cost",
+        "agent_name": "Cost",
+        "timestamp": "2025-12-16T01:26:13.273775",
+        "tool_executions": []
+      },
+      {
+        "node_id": "Execution",
+        "agent_name": "Execution",
+        "timestamp": "2025-12-16T01:26:13.288613",
+        "tool_executions": [
+          {
+            "tool_name": "file_write",
+            "success": true,
+            "output_summary": "File written: runtime/tools/sandbox\\131cc0c9-eebb-4218-93e4-e2c7535348a2\\config.yaml",
+            "error": null,
+            "exit_code": 0,
+            "execution_time_ms": 1.0018348693847656,
+            "validated": true,
+            "degrade_triggered": false,
+            "rollback_triggered": false,
+            "timestamp": "2025-12-16T01:26:13.288613"
+          }
+        ]
+      },
+      {
+        "node_id": "Cost",
+        "agent_name": "Cost",
+        "timestamp": "2025-12-16T01:26:14.377592",
+        "tool_executions": []
+      },
+      {
+        "node_id": "Evaluation",
+        "agent_name": "Evaluation",
+        "timestamp": "2025-12-16T01:26:15.496039",
+        "tool_executions": []
+      }
+    ],
+    "conditions_evidence": {
+      "Product": {
+        "budget_remaining": null,
+        "risk_level": "low",
+        "confidence": 0.5,
+        "llm_fallback_used": true
+      },
+      "Cost": {
+        "budget_remaining": 1000.0,
+        "risk_level": "low",
+        "confidence": 0.5,
+        "llm_fallback_used": true
+      },
+      "Data": {
+        "budget_remaining": null,
+        "risk_level": "low",
+        "confidence": 1.0,
+        "llm_fallback_used": false
+      },
+      "Execution": {
+        "budget_remaining": null,
+        "risk_level": "low",
+        "confidence": 1.0,
+        "llm_fallback_used": false
+      },
+      "Evaluation": {
+        "budget_remaining": null,
+        "risk_level": "low",
+        "confidence": 0.5,
+        "llm_fallback_used": true
+      }
+    }
+  },
+  "tool_executions": [
+    {
+      "tool_name": "file_write",
+      "success": true,
+      "output_summary": "File written: runtime/tools/sandbox\\131cc0c9-eebb-4218-93e4-e2c7535348a2\\config.yaml",
+      "error": null,
+      "exit_code": 0,
+      "execution_time_ms": 1.0018348693847656,
+      "validated": true,
+      "degrade_triggered": false,
+      "rollback_triggered": false,
+      "timestamp": "2025-12-16T01:26:13.288613"
+    }
+  ],
+  "evaluation_feedback_flow": {
+    "last_evaluation_failed": false,
+    "last_failure_type": null,
+    "last_blame_hint": null,
+    "used_in_plan_selection": false
+  },
+  "final_context": {
+    "decision_context": {
+      "intent": {
+        "intent_candidates": [
+          {
+            "intent_id": "general_information",
+            "confidence": 0.6,
+            "description": "General knowledge retrieval"
+          }
+        ],
+        "intent_uncertainty_level": "MEDIUM",
+        "risk_flags": [
+          "AMBIGUOUS_GOAL"
+        ],
+        "recommendation": "CLARIFY",
+        "reason_codes": [
+          "INPUT_EMPTY"
+        ]
+      },
+      "query": {
+        "original_query": "",
+        "rewritten_query": "",
+        "rewrite_diff": [],
+        "rewrite_justification": [
+          "NO_CHANGE"
+        ],
+        "confidence": 1.0,
+        "reason_codes": [
+          "UNCHANGED"
+        ]
+      },
+      "ranking": {
+        "ranked_candidates": [
+          {
+            "candidate_id": "baseline",
+            "score": -0.19100000000000003,
+            "pros": [],
+            "cons": [],
+            "rank": 1
+          },
+          {
+            "candidate_id": "enhanced",
+            "score": -0.255,
+            "pros": [
+              "HIGH_QUALITY"
+            ],
+            "cons": [
+              "HIGH_COST"
+            ],
+            "rank": 2
+          }
+        ],
+        "elimination_reasons": {
+          "enhanced": [
+            "HIGH_COST"
+          ]
+        },
+        "selection_confidence": 0.7,
+        "reason_codes": [
+          "MULTI_CRITERIA_SORT"
+        ]
+      },
+      "strategy": {
+        "current_strategy_mode": "AGGRESSIVE",
+        "strategy_reason": [
+          "SUCCESS_HISTORY"
+        ],
+        "allowed_actions": [
+          "PROCEED",
+          "EXPAND_SCOPE"
+        ],
+        "forbidden_actions": [
+          "LIMIT_SCOPE"
+        ],
+        "reason_codes": [
+          "SUCCESS_HISTORY"
+        ]
+      }
+    },
+    "product_agent_executed": true,
+    "spec_validated": true,
+    "cost_agent_executed": true,
+    "cost_usage": 0.0,
+    "budget_remaining": 1000.0,
+    "cost_flags": [],
+    "data_agent_executed": true,
+    "data_manifest": {
+      "source": "placeholder",
+      "hash": "placeholder",
+      "version": "1.0"
+    },
+    "execution_agent_executed": true,
+    "artifacts": {
+      "config_generated": true,
+      "index_built": false,
+      "evaluation_run": false
+    },
+    "evaluation_agent_executed": true,
+    "evaluation_result": {
+      "quality_score": 0.85,
+      "passed": true
+    },
+    "last_evaluation_failed": false,
+    "last_failure_type": null,
+    "last_blame_hint": null
+  },
+  "generated_at": "2025-12-16T01:26:15.532394"
+}
