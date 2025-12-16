@@ -1,308 +1,158 @@
-"""Decision-only Pipeline Plan generator based on contextual risk assessment."""
-
+"""Pipeline decision engine combining risk scoring, contextual bandit, and active questioning."""
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, Optional
+
+import yaml
+
+from .bandit import LinUCBPolicy
+from .questions import select_questions
+from .risk import RiskModel
 
 
-class RiskLevel(str, Enum):
-    LOW = "LOW"
-    MEDIUM = "MEDIUM"
-    HIGH = "HIGH"
-
-
-class ParsingStrategy(str, Enum):
-    LIGHTWEIGHT = "lightweight"
-    HYBRID = "hybrid"
-    MAXIMUM_FIDELITY = "maximum_fidelity"
-
-
-class ChunkingStrategy(str, Enum):
-    SEMANTIC = "semantic"
-    HYBRID = "hybrid"
-    ALGORITHMIC = "algorithmic"
-
-
-class EmbeddingStrategy(str, Enum):
-    SINGLE = "single"
-    MULTI = "multi"
-    ADAPTIVE = "adaptive"
-
-
-class RetrievalStrategy(str, Enum):
-    VECTOR_ONLY = "vector_only"
-    HYBRID = "hybrid"
-    MULTI_STAGE = "multi_stage"
-
-
-class RerankStrategy(str, Enum):
-    NONE = "none"
-    CROSS_ENCODER = "cross_encoder"
-    MULTI_PASS = "multi_pass"
-
-
-class HitlPolicy(str, Enum):
-    DISABLED = "disabled"
-    CONDITIONAL = "conditional"
-    MANDATORY = "mandatory"
-
-
-@dataclass(frozen=True)
+@dataclass
 class DocumentProfile:
-    """Describes document traits that affect processing complexity."""
-
-    is_scanned: bool = False
-    contains_dense_tables: bool = False
-    language: str = ""
-    has_handwriting: bool = False
+    is_scanned: Optional[bool] = None
+    contains_dense_tables: Optional[bool] = None
+    language: Optional[str] = None
+    has_handwriting: Optional[bool] = None
 
 
-@dataclass(frozen=True)
+@dataclass
 class InputContext:
-    """Inputs used to decide pipeline behavior."""
-
     industry: str = ""
     task_type: str = ""
-    document_profile: DocumentProfile = DocumentProfile()
+    document_profile: Optional[DocumentProfile] = None
     user_preference: str = ""
-    decision_impact: str = ""  # e.g., operational, financial, regulatory
+    decision_impact: str = ""
 
 
-@dataclass(frozen=True)
+@dataclass
 class PipelinePlan:
-    """Selected pipeline plan with strategies only."""
+    id: str
+    risk_level: str
+    config: Dict[str, str]
+    target_score: float = 50.0
 
-    risk_level: RiskLevel
-    parsing_strategy: ParsingStrategy
-    chunking_strategy: ChunkingStrategy
-    embedding_strategy: EmbeddingStrategy
-    retrieval_strategy: RetrievalStrategy
-    rerank_strategy: RerankStrategy
-    hitl_policy: HitlPolicy
 
-    def as_dict(self) -> Dict[str, str]:
+@dataclass
+class PipelineDecisionResult:
+    risk_score: float
+    risk_level: str
+    chosen_plan_id: str
+    plan: Dict[str, str]
+    confidence: float
+    questions_to_ask: List[Dict]
+    rationale: Dict[str, List[str]]
+    debug: Dict
+
+    def as_dict(self) -> Dict:
         return {
-            "risk_level": self.risk_level.value,
-            "parsing_strategy": self.parsing_strategy.value,
-            "chunking_strategy": self.chunking_strategy.value,
-            "embedding_strategy": self.embedding_strategy.value,
-            "retrieval_strategy": self.retrieval_strategy.value,
-            "rerank_strategy": self.rerank_strategy.value,
-            "hitl_policy": self.hitl_policy.value,
+            "risk_score": self.risk_score,
+            "risk_level": self.risk_level,
+            "chosen_plan_id": self.chosen_plan_id,
+            "plan": self.plan,
+            "confidence": self.confidence,
+            "questions_to_ask": self.questions_to_ask,
+            "rationale": self.rationale,
+            "debug": self.debug,
         }
 
 
-# Risk scoring constants kept explicit for traceability.
-INDUSTRY_PRIOR = {
-    "finance": 3,
-    "fintech": 3,
-    "health": 3,
-    "healthcare": 3,
-    "pharma": 3,
-    "legal": 3,
-    "public_sector": 2,
-    "energy": 2,
-}
-
-TASK_CRITICALITY = {
-    "compliance": 3,
-    "decision": 2,
-    "research": 2,
-    "qa": 1,
-}
-
-DECISION_IMPACT = {
-    "regulatory": 3,
-    "financial": 3,
-    "operational": 2,
-    "informational": 1,
-}
-
-DOCUMENT_COMPLEXITY_BONUS = 2
-HANDWRITING_COMPLEXITY_BONUS = 1
-DENSE_TABLE_COMPLEXITY_BONUS = 1
-
-USER_OVERRIDE = {
-    "quality": 1,
-    "speed": -1,
-    "cost": -1,
-}
-
-HIGH_RISK_THRESHOLD = 7
-MEDIUM_RISK_THRESHOLD = 4
-MIN_RISK_SCORE = 0
-MAX_RISK_SCORE = 9
+def load_config(config_path: str) -> Dict:
+    with open(config_path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
 
 
-def normalized_score(score: int) -> int:
-    return max(MIN_RISK_SCORE, min(score, MAX_RISK_SCORE))
+def _plan_from_config(entry: Dict) -> PipelinePlan:
+    plan_config = {k: v for k, v in entry.items() if k not in {"id", "risk_level", "target_score"}}
+    return PipelinePlan(
+        id=entry["id"],
+        risk_level=entry.get("risk_level", "LOW"),
+        config=plan_config,
+        target_score=entry.get("target_score", 50.0),
+    )
 
 
-def industry_risk(industry: str) -> int:
-    key = industry.lower().strip()
-    return INDUSTRY_PRIOR.get(key, 1 if key else 0)
+def _feature_vector(features: Dict[str, float], config: Dict) -> List[float]:
+    names = sorted(set(config["risk_weights"].get("linear", {}).keys()))
+    # ensure interaction feature parts are represented for stability
+    for interaction in config["risk_weights"].get("interactions", {}):
+        for part in interaction.split("*"):
+            names.append(part)
+    unique_names = sorted(set(names))
+    return [features.get(name, 0.0) for name in unique_names]
 
 
-def task_risk(task_type: str) -> int:
-    key = task_type.lower().strip()
-    return TASK_CRITICALITY.get(key, 1 if key else 0)
+def decide_pipeline(
+    context: InputContext,
+    doc_profile: Optional[DocumentProfile] = None,
+    config_path: str = "config/pipeline_decision.yaml",
+    bandit_state_path: Optional[str] = None,
+) -> PipelineDecisionResult:
+    profile = doc_profile or context.document_profile or DocumentProfile()
+    config = load_config(config_path)
+
+    risk_model = RiskModel(config)
+    risk_result = risk_model.score(context, profile)
+
+    plans = [_plan_from_config(p) for p in config.get("plans", [])]
+    state_path = bandit_state_path or config.get("bandit_state_path", "artifacts/bandit_state.json")
+    bandit = LinUCBPolicy(plans=[p.__dict__ for p in plans], alpha=config.get("bandit_alpha", 1.5), state_path=state_path)
+    feature_vector = _feature_vector(risk_result.features, config)
+    plan_id, bandit_debug = bandit.select_arm(feature_vector, risk_result.level, risk_result.score)
+    chosen_plan = next(p for p in plans if p.id == plan_id)
+
+    bandit_confidence = _bandit_confidence(bandit_debug)
+    confidence = max(0.0, min(1.0, 0.6 * risk_result.confidence + 0.4 * bandit_confidence))
+
+    questions = select_questions(context, profile, risk_result.level, confidence, bandit_debug.scores, config)
+
+    rationale = {
+        "top_features": [f"{name}:{value:.2f}" for name, value in risk_result.contributions[:3]],
+        "plan_choice": [
+            "bandit" if bandit_debug.used_bandit else "cold_start",
+            f"selected:{plan_id}",
+        ],
+    }
+
+    debug = {
+        "risk_contributions": risk_result.contributions,
+        "bandit": {
+            "used": bandit_debug.used_bandit,
+            "scores": bandit_debug.scores,
+            "chosen": bandit_debug.chosen,
+        },
+        "questions": questions,
+        "feature_vector": feature_vector,
+    }
+
+    return PipelineDecisionResult(
+        risk_score=risk_result.score,
+        risk_level=risk_result.level,
+        chosen_plan_id=plan_id,
+        plan=chosen_plan.config,
+        confidence=confidence,
+        questions_to_ask=questions,
+        rationale=rationale,
+        debug=debug,
+    )
 
 
-def document_risk(profile: DocumentProfile) -> int:
-    score = 0
-    if profile.is_scanned:
-        score += DOCUMENT_COMPLEXITY_BONUS
-    if profile.contains_dense_tables:
-        score += DENSE_TABLE_COMPLEXITY_BONUS
-    if profile.has_handwriting:
-        score += HANDWRITING_COMPLEXITY_BONUS
-    if profile.language.lower() not in {"", "en", "english"}:
-        score += 1
-    return score
+def _bandit_confidence(bandit_debug) -> float:
+    if not bandit_debug.used_bandit or len(bandit_debug.scores) < 2:
+        return 0.5
+    top1, top2 = bandit_debug.scores[0], bandit_debug.scores[1]
+    denom = abs(top1[1]) + 1e-6
+    margin = abs(top1[1] - top2[1]) / denom
+    return max(0.0, min(1.0, margin))
 
 
-def decision_impact_risk(impact: str, fallback_task_type: str) -> int:
-    key = impact.lower().strip()
-    if not key:
-        key = fallback_task_type.lower().strip()
-    return DECISION_IMPACT.get(key, 1 if key else 0)
-
-
-def apply_user_override(base_score: int, preference: str) -> int:
-    key = preference.lower().strip()
-    adjustment = USER_OVERRIDE.get(key, 0)
-    return normalized_score(base_score + adjustment)
-
-
-def score_context(context: InputContext) -> int:
-    score = 0
-    score += industry_risk(context.industry)
-    score += task_risk(context.task_type)
-    score += document_risk(context.document_profile)
-    score += decision_impact_risk(context.decision_impact, context.task_type)
-    return apply_user_override(score, context.user_preference)
-
-
-def resolve_risk_level(score: int) -> RiskLevel:
-    if score >= HIGH_RISK_THRESHOLD:
-        return RiskLevel.HIGH
-    if score >= MEDIUM_RISK_THRESHOLD:
-        return RiskLevel.MEDIUM
-    return RiskLevel.LOW
-
-
-BASELINE_PLAN = {
-    RiskLevel.LOW: PipelinePlan(
-        risk_level=RiskLevel.LOW,
-        parsing_strategy=ParsingStrategy.LIGHTWEIGHT,
-        chunking_strategy=ChunkingStrategy.SEMANTIC,
-        embedding_strategy=EmbeddingStrategy.SINGLE,
-        retrieval_strategy=RetrievalStrategy.VECTOR_ONLY,
-        rerank_strategy=RerankStrategy.NONE,
-        hitl_policy=HitlPolicy.DISABLED,
-    ),
-    RiskLevel.MEDIUM: PipelinePlan(
-        risk_level=RiskLevel.MEDIUM,
-        parsing_strategy=ParsingStrategy.HYBRID,
-        chunking_strategy=ChunkingStrategy.HYBRID,
-        embedding_strategy=EmbeddingStrategy.ADAPTIVE,
-        retrieval_strategy=RetrievalStrategy.HYBRID,
-        rerank_strategy=RerankStrategy.CROSS_ENCODER,
-        hitl_policy=HitlPolicy.CONDITIONAL,
-    ),
-    RiskLevel.HIGH: PipelinePlan(
-        risk_level=RiskLevel.HIGH,
-        parsing_strategy=ParsingStrategy.MAXIMUM_FIDELITY,
-        chunking_strategy=ChunkingStrategy.ALGORITHMIC,
-        embedding_strategy=EmbeddingStrategy.MULTI,
-        retrieval_strategy=RetrievalStrategy.MULTI_STAGE,
-        rerank_strategy=RerankStrategy.MULTI_PASS,
-        hitl_policy=HitlPolicy.MANDATORY,
-    ),
-}
-
-
-def adjusted_for_preference(plan: PipelinePlan, preference: str, risk_level: RiskLevel) -> PipelinePlan:
-    # High risk plans are immutable by preference to respect safeguards.
-    if risk_level == RiskLevel.HIGH:
-        return plan
-
-    key = preference.lower().strip()
-
-    if key == "speed":
-        return PipelinePlan(
-            risk_level=plan.risk_level,
-            parsing_strategy=ParsingStrategy.LIGHTWEIGHT,
-            chunking_strategy=plan.chunking_strategy,
-            embedding_strategy=EmbeddingStrategy.SINGLE,
-            retrieval_strategy=RetrievalStrategy.VECTOR_ONLY,
-            rerank_strategy=RerankStrategy.NONE,
-            hitl_policy=plan.hitl_policy,
-        )
-
-    if key == "cost":
-        return PipelinePlan(
-            risk_level=plan.risk_level,
-            parsing_strategy=plan.parsing_strategy,
-            chunking_strategy=ChunkingStrategy.SEMANTIC,
-            embedding_strategy=EmbeddingStrategy.SINGLE,
-            retrieval_strategy=RetrievalStrategy.VECTOR_ONLY,
-            rerank_strategy=RerankStrategy.NONE,
-            hitl_policy=plan.hitl_policy,
-        )
-
-    if key == "quality":
-        return PipelinePlan(
-            risk_level=plan.risk_level,
-            parsing_strategy=max(plan.parsing_strategy, ParsingStrategy.HYBRID, key=lambda s: list(ParsingStrategy).index(s)),
-            chunking_strategy=max(plan.chunking_strategy, ChunkingStrategy.HYBRID, key=lambda s: list(ChunkingStrategy).index(s)),
-            embedding_strategy=max(plan.embedding_strategy, EmbeddingStrategy.ADAPTIVE, key=lambda s: list(EmbeddingStrategy).index(s)),
-            retrieval_strategy=max(plan.retrieval_strategy, RetrievalStrategy.HYBRID, key=lambda s: list(RetrievalStrategy).index(s)),
-            rerank_strategy=max(plan.rerank_strategy, RerankStrategy.CROSS_ENCODER, key=lambda s: list(RerankStrategy).index(s)),
-            hitl_policy=max(plan.hitl_policy, HitlPolicy.CONDITIONAL, key=lambda s: list(HitlPolicy).index(s)),
-        )
-
-    return plan
-
-
-def decide_pipeline(context: InputContext) -> PipelinePlan:
-    score = normalized_score(score_context(context))
-    risk_level = resolve_risk_level(score)
-    base_plan = BASELINE_PLAN[risk_level]
-    return adjusted_for_preference(base_plan, context.user_preference, risk_level)
-
-
-def example_input_contexts() -> List[InputContext]:
-    return [
-        InputContext(
-            industry="education",
-            task_type="qa",
-            document_profile=DocumentProfile(language="en"),
-            user_preference="speed",
-            decision_impact="informational",
-        ),
-        InputContext(
-            industry="public_sector",
-            task_type="research",
-            document_profile=DocumentProfile(is_scanned=False, contains_dense_tables=True, language="en"),
-            user_preference="speed",
-            decision_impact="operational",
-        ),
-        InputContext(
-            industry="finance",
-            task_type="compliance",
-            document_profile=DocumentProfile(is_scanned=True, contains_dense_tables=True, has_handwriting=True, language="fr"),
-            user_preference="quality",
-            decision_impact="regulatory",
-        ),
-    ]
-
-
-def example_pipeline_plans() -> List[Dict[str, Dict[str, str]]]:
-    plans = []
-    for context in example_input_contexts():
-        plan = decide_pipeline(context)
-        plans.append({"context": context, "plan": plan.as_dict()})
-    return plans
+__all__ = [
+    "InputContext",
+    "DocumentProfile",
+    "PipelinePlan",
+    "PipelineDecisionResult",
+    "decide_pipeline",
+]

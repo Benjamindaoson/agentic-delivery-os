@@ -1,0 +1,90 @@
+thresholds:
+  low: 0
+  medium: 45
+  high: 75
+bandit_alpha: 1.2
+bandit_state_path: artifacts/bandit_state.json
+risk_weights:
+  linear:
+    industry_finance: 12
+    industry_health: 10
+    industry_public_sector: 6
+    task_compliance: 10
+    task_research: 5
+    task_decision: 6
+    task_qa: 3
+    decision_impact_regulatory: 12
+    decision_impact_financial: 10
+    decision_impact_operational: 6
+    doc_scanned: 8
+    doc_dense_tables: 5
+    doc_handwriting: 4
+    language_non_en: 3
+    user_preference_quality: 2
+    user_preference_speed: -3
+    user_preference_cost: -2
+  interactions:
+    doc_scanned*decision_impact_regulatory: 6
+    doc_dense_tables*industry_finance: 3
+    doc_handwriting*industry_finance: 4
+industry_prior:
+  finance: 8
+  fintech: 6
+  health: 7
+  healthcare: 7
+  legal: 6
+  public_sector: 4
+cost_matrix:
+  false_positive: 5
+  false_negative: 14
+  catastrophic: 18
+plans:
+  - id: fast_low
+    risk_level: LOW
+    target_score: 20
+    parsing_strategy: lightweight
+    chunking_strategy: semantic
+    embedding_strategy: single
+    retrieval_strategy: vector_only
+    rerank_strategy: none
+    hitl_policy: disabled
+  - id: balanced_med
+    risk_level: MED
+    target_score: 55
+    parsing_strategy: hybrid
+    chunking_strategy: hybrid
+    embedding_strategy: adaptive
+    retrieval_strategy: hybrid
+    rerank_strategy: cross_encoder
+    hitl_policy: conditional
+  - id: guardrail_high
+    risk_level: HIGH
+    target_score: 85
+    parsing_strategy: maximum_fidelity
+    chunking_strategy: algorithmic
+    embedding_strategy: multi
+    retrieval_strategy: multi_stage
+    rerank_strategy: multi_pass
+    hitl_policy: mandatory
+question_conf_threshold: 0.7
+question_pool:
+  - id: q_scan_quality
+    text: "Is the document scan quality acceptable (no blur/artefacts)?"
+    related_features: [doc_scanned]
+    expected_impact_weight: 1.2
+    required_for_high_risk: true
+  - id: q_tables
+    text: "Do the documents contain dense or nested tables?"
+    related_features: [doc_dense_tables]
+    expected_impact_weight: 1.1
+    required_for_high_risk: true
+  - id: q_language
+    text: "Is the primary language English?"
+    related_features: [language_non_en]
+    expected_impact_weight: 0.8
+    required_for_high_risk: false
+  - id: q_handwriting
+    text: "Is there handwriting that must be captured?"
+    related_features: [doc_handwriting]
+    expected_impact_weight: 1.0
+    required_for_high_risk: true
