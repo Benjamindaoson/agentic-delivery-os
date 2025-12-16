@@ -44,6 +44,11 @@ Thumbs.db
 .env
 .env.local
 
+# Runtime artifacts
+artifacts/
+runtime/tools/sandbox/
+trace_store/
+*.json
 
 
 
