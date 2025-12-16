@@ -67,6 +67,23 @@ class PipelineDecisionResult:
     rationale: List[str]
     debug: Dict
 
+    def to_dict(self) -> Dict:
+        """Return a fully JSON-serializable representation of the decision."""
+
+        return {
+            "risk_score": self.risk_score,
+            "risk_level": self.risk_level,
+            "chosen_plan_id": self.chosen_plan_id,
+            "plan": self.plan,
+            "confidence": self.confidence,
+            "questions_to_ask": self.questions_to_ask,
+            "rationale": self.rationale,
+            "debug": self.debug,
+        }
+
+    def __iter__(self):  # pragma: no cover - convenience for callers expecting dict-like behavior
+        return iter(self.to_dict().items())
+
 
 _CONFIG_CACHE: Optional[Dict] = None
 
