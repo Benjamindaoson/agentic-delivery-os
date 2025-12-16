@@ -2,7 +2,14 @@ import json
 from pathlib import Path
 from shutil import copytree
 
-from backend.eval.use_case_flow import EvalReport, GateDecision, LearningSignal, run_use_case_flow
+from backend.eval.use_case_flow import (
+    EvalReport,
+    GateDecision,
+    LearningSignal,
+    load_pending_learning_signals,
+    mark_learning_signal_consumed,
+    run_use_case_flow,
+)
 
 
 def _prepare_use_cases(tmp_path, monkeypatch):
@@ -104,3 +111,69 @@ def test_use_case_flow_replay_consistent_decision(tmp_path, monkeypatch):
     with open(base / "gate_decision.json", "r", encoding="utf-8") as f:
         stored = json.load(f)
     assert stored["decision"] == "promote"
+
+
+def test_pending_learning_blocks_gate(tmp_path, monkeypatch):
+    _prepare_use_cases(tmp_path, monkeypatch)
+
+    failing_answers = {
+        "annual_fee": {
+            "fields": {"fee": 0.0},
+            "citations": [{"chunk_id": "c1"}],
+        }
+    }
+
+    _, failing_signal, _ = run_use_case_flow(failing_answers, run_id="failing-run")
+    pending_before = load_pending_learning_signals()
+    assert pending_before and pending_before[0].signal_id == failing_signal.signal_id
+
+    passing_answers = {
+        "annual_fee": {
+            "fields": {"fee": 0.0, "condition": "刷卡3次免年费"},
+            "citations": [{"chunk_id": "c1"}],
+        },
+        "cashback": {
+            "fields": {"rate": 0.05, "category": "超市"},
+            "citations": [{"chunk_id": "c2"}],
+        },
+        "terms_conflict": {
+            "fields": {"conflict_detected": True},
+            "citations": [{"chunk_id": "c3"}],
+        },
+    }
+
+    _, _, blocked_decision = run_use_case_flow(passing_answers, run_id="blocked-run")
+    assert blocked_decision.decision == "blocked"
+    assert blocked_decision.reason == "Unconsumed learning signal"
+
+
+def test_consumed_learning_allows_gate_pass(tmp_path, monkeypatch):
+    _prepare_use_cases(tmp_path, monkeypatch)
+
+    failing_answers = {
+        "annual_fee": {
+            "fields": {"fee": 0.0},
+            "citations": [{"chunk_id": "c1"}],
+        }
+    }
+
+    _, failing_signal, _ = run_use_case_flow(failing_answers, run_id="needs-consumption")
+    assert mark_learning_signal_consumed(failing_signal.signal_id)
+
+    passing_answers = {
+        "annual_fee": {
+            "fields": {"fee": 0.0, "condition": "刷卡3次免年费"},
+            "citations": [{"chunk_id": "c1"}],
+        },
+        "cashback": {
+            "fields": {"rate": 0.05, "category": "超市"},
+            "citations": [{"chunk_id": "c2"}],
+        },
+        "terms_conflict": {
+            "fields": {"conflict_detected": True},
+            "citations": [{"chunk_id": "c3"}],
+        },
+    }
+
+    _, _, gate_decision = run_use_case_flow(passing_answers, run_id="promote-after-consumption")
+    assert gate_decision.decision == "promote"
