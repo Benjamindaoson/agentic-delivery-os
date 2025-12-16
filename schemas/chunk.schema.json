@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Chunk",
+  "type": "object",
+  "properties": {
+    "chunk_type": {
+      "type": "string",
+      "enum": ["clause", "numeric_table", "faq", "timeline"]
+    }
+  },
+  "additionalProperties": true
+}
+
+
+
+

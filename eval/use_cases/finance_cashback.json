@@ -1,0 +1,14 @@
+{
+  "scenario": "cashback",
+  "question": "这张卡超市消费返现多少？",
+  "expected_fields": ["rate", "category"],
+  "evaluation_rules": {
+    "rate": "numeric_exact_or_tolerance",
+    "category": "must_exist",
+    "citation": "required"
+  }
+}
+
+
+
+

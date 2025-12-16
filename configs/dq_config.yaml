@@ -1,0 +1,20 @@
+dq:
+  # OCR coverage thresholds (0.0–1.0)
+  ocr_coverage_warn: 0.6
+  ocr_coverage_fail: 0.3
+
+  # Table recovery thresholds
+  table_recovery_warn: 0.7
+  table_recovery_fail: 0.4
+
+  # Empty page ratio thresholds
+  empty_page_ratio_warn: 0.5
+  empty_page_ratio_fail: 0.8
+
+  # Duplicate page ratio thresholds
+  duplicate_page_ratio_warn: 0.3
+  duplicate_page_ratio_fail: 0.6
+
+
+
+

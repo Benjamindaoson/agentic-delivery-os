@@ -1,0 +1,13 @@
+{
+  "scenario": "terms_conflict",
+  "question": "这张卡是否存在年费条款冲突？",
+  "expected_fields": ["conflict_detected"],
+  "evaluation_rules": {
+    "conflict_detected": "must_exist",
+    "citation": "required"
+  }
+}
+
+
+
+

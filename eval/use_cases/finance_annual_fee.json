@@ -1,0 +1,14 @@
+{
+  "scenario": "annual_fee",
+  "question": "这张卡首年免年费吗？",
+  "expected_fields": ["fee", "condition"],
+  "evaluation_rules": {
+    "fee": "numeric_exact_or_tolerance",
+    "condition": "must_exist",
+    "citation": "required"
+  }
+}
+
+
+
+
