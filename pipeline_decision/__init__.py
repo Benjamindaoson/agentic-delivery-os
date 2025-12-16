@@ -3,6 +3,7 @@
 from .engine import (
     DocumentProfile,
     InputContext,
+    PipelineDecisionResult,
     PipelinePlan,
     decide_pipeline,
     example_input_contexts,
@@ -12,6 +13,7 @@ from .engine import (
 __all__ = [
     "DocumentProfile",
     "InputContext",
+    "PipelineDecisionResult",
     "PipelinePlan",
     "decide_pipeline",
     "example_input_contexts",
