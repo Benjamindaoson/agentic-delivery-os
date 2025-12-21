@@ -4,13 +4,14 @@ LLM 增强版本：使用 LLM 生成 evaluation_summary, potential_risks, confid
 """
 from runtime.agents.base_agent import BaseAgent
 from typing import Dict, Any, Tuple
-from runtime.llm.client_factory import create_llm_client
+from runtime.llm import get_llm_adapter
 from runtime.llm.prompt_loader import PromptLoader
 
 class EvaluationAgent(BaseAgent):
     def __init__(self):
         super().__init__("Evaluation")
-        self.llm_client = create_llm_client()
+        # 使用集中化的 LLMAdapter 入口
+        self.llm_adapter = get_llm_adapter()
         self.prompt_loader = PromptLoader()
     
     async def execute(self, context: Dict[str, Any], task_id: str) -> Dict[str, Any]:
@@ -136,12 +137,15 @@ class EvaluationAgent(BaseAgent):
         # 构建 user prompt
         user_prompt = prompt_data["user_prompt_template"].format(context_summary=context_summary)
         
-        # 调用 LLM（使用新的 generate_json 接口）
-        result, meta = await self.llm_client.generate_json(
+        # 调用 LLM（使用统一 adapter）
+        result, meta = await self.llm_adapter.call(
             system_prompt=prompt_data["system_prompt"],
             user_prompt=user_prompt,
             schema=prompt_data.get("json_schema", {}),
-            meta={"prompt_version": prompt_data.get("version", "1.0")}
+            meta={"prompt_version": prompt_data.get("version", "1.0")},
+            task_id=task_id,
+            tenant_id=context.get("tenant_id", "default"),
+            model=prompt_data.get("model", None)
         )
         
         return result, meta

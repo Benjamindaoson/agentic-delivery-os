@@ -4,14 +4,14 @@ LLM Heavy Agent Baseline
 """
 from typing import Dict, Any
 from runtime.agents.product_agent import ProductAgent
-from runtime.llm.client_factory import create_llm_client
+from runtime.llm import get_llm_adapter
 
 class LLMHeavyAgent:
     """LLM Heavy Agent 基线系统"""
     
     def __init__(self, max_iterations: int = 10):
         self.agent = ProductAgent()
-        self.llm_client = create_llm_client()
+        self.llm_adapter = get_llm_adapter()
         self.max_iterations = max_iterations
         self.version = "1.0"
     
@@ -24,6 +24,7 @@ class LLMHeavyAgent:
         # 多轮迭代（高成本）
         for i in range(self.max_iterations):
             # 调用 LLM 进行深度推理
+            # delegate to agent which uses adapter internally
             result = await self.agent.execute(context, task_id)
             iterations.append({
                 "iteration": i + 1,

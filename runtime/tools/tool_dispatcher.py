@@ -72,6 +72,7 @@ class ToolDispatcher:
             "file_write": {
                 "permission": ToolPermission.WRITE_LOCAL,
                 "allowed_paths": ["artifacts/", "runtime/tools/sandbox/"],
+                "image": "alpine:3.18",
                 "schema": {
                     "type": "object",
                     "required": ["path", "content"],
@@ -85,6 +86,7 @@ class ToolDispatcher:
             "file_read": {
                 "permission": ToolPermission.READ_ONLY,
                 "allowed_paths": ["artifacts/", "runtime/tools/sandbox/"],
+                "image": "alpine:3.18",
                 "schema": {
                     "type": "object",
                     "required": ["path"],
@@ -97,6 +99,7 @@ class ToolDispatcher:
             "command_execute": {
                 "permission": ToolPermission.EXECUTE_SAFE,
                 "allowed_commands": ["mkdir", "cp", "mv", "ls", "cat", "echo"],
+                "image": "alpine:3.18",
                 "schema": {
                     "type": "object",
                     "required": ["command", "args"],
@@ -256,7 +259,96 @@ class ToolDispatcher:
         """在沙盒中执行工具"""
         task_sandbox = os.path.join(self.sandbox_dir, task_id)
         os.makedirs(task_sandbox, exist_ok=True)
-        
+        # Prefer docker-based sandbox if image specified and docker available
+        image = tool_def.get("image")
+        docker_path = shutil.which("docker")
+        if image and docker_path:
+            # Map params to a command inside the container based on tool_name
+            container_cmd = None
+            if tool_name == "file_write":
+                # write content to file inside mounted workspace
+                dest = os.path.basename(params["path"])
+                content = params["content"].replace("'", "'\"'\"'")
+                # use sh -c to write content
+                container_cmd = ["sh", "-c", f"cat > /workspace/{dest} <<'EOF'\n{content}\nEOF"]
+            elif tool_name == "file_read":
+                dest = os.path.basename(params["path"])
+                container_cmd = ["sh", "-c", f"cat /workspace/{dest} || exit 3"]
+            elif tool_name == "command_execute":
+                command = params["command"]
+                args = params.get("args", [])
+                # validate allowed commands
+                allowed = tool_def.get("allowed_commands", [])
+                if allowed and command not in allowed:
+                    return {"success": False, "error": f"Command {command} not allowed", "exit_code": -2}
+                container_cmd = [command] + args
+            else:
+                return {"success": False, "error": f"Unknown tool: {tool_name}"}
+
+            # Prepare docker run args
+            cpu_limit = str(tool_def.get("cpu_limit", 0.5))
+            mem_limit = str(tool_def.get("memory_limit", "128m"))
+            timeout_sec = int(tool_def.get("timeout_sec", 10))
+
+            # run docker with mounted workspace
+            host_workspace = task_sandbox
+            try:
+                start = datetime.now()
+                # security: enforce non-root user inside container
+                docker_cmd = [
+                    docker_path, "run", "--rm",
+                    "--network=none",
+                    "--cpus", cpu_limit,
+                    "--memory", mem_limit,
+                    "--read-only",
+                    "--user", "1000:1000",
+                    "-v", f"{host_workspace}:/workspace:rw",
+                ]
+                # optional seccomp profile
+                seccomp_profile = os.environ.get("SANDBOX_SECCOMP_PROFILE")
+                if seccomp_profile and os.path.exists(seccomp_profile):
+                    docker_cmd += ["--security-opt", f"seccomp={seccomp_profile}"]
+                # image allowlist enforcement (optional)
+                allowed_images_env = os.environ.get("SANDBOX_ALLOWED_IMAGES")
+                if allowed_images_env:
+                    allowed_images = [i.strip() for i in allowed_images_env.split(",") if i.strip()]
+                    if image not in allowed_images:
+                        return {"success": False, "error": f"Image {image} not allowed by SANDBOX_ALLOWED_IMAGES", "exit_code": -3}
+                # optional image signature enforcement
+                require_signed = os.environ.get("SANDBOX_REQUIRE_SIGNED_IMAGES", "false").lower() == "true"
+                if require_signed:
+                    try:
+                        from runtime.tools.image_signing import verify_image_signed
+                        if not verify_image_signed(image):
+                            return {"success": False, "error": f"Image {image} not signed", "exit_code": -4}
+                    except Exception:
+                        return {"success": False, "error": "Image signing check failed", "exit_code": -5}
+
+                docker_cmd.append(image)
+                docker_cmd += (container_cmd if isinstance(container_cmd, list) else [container_cmd])
+                proc = subprocess.run(docker_cmd, capture_output=True, text=True, timeout=timeout_sec)
+                duration_ms = (datetime.now() - start).total_seconds() * 1000
+                stdout = proc.stdout
+                stderr = proc.stderr
+                exit_code = proc.returncode
+                success = exit_code == 0
+                # Trim large outputs for trace
+                out_summary = stdout[:2000] if stdout else ""
+                err_summary = stderr[:2000] if stderr else ""
+                return {
+                    "success": success,
+                    "output": out_summary,
+                    "error": err_summary if not success else None,
+                    "exit_code": exit_code,
+                    "execution_time_ms": duration_ms
+                }
+            except subprocess.TimeoutExpired:
+                # Try to best-effort kill container (best-effort)
+                return {"success": False, "error": "Command timeout", "exit_code": -1}
+            except Exception as e:
+                return {"success": False, "error": str(e), "exit_code": -1}
+
+        # Fallback to previous local behavior
         if tool_name == "file_write":
             path = params["path"]
             content = params["content"]
@@ -300,6 +392,26 @@ class ToolDispatcher:
                 return {"success": False, "error": str(e), "exit_code": -1}
         
         return {"success": False, "error": f"Unknown tool: {tool_name}"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

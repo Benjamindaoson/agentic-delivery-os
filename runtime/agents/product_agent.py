@@ -5,13 +5,14 @@ LLM 增强版本：使用 LLM 生成 clarification_summary, inferred_constraints
 from runtime.agents.base_agent import BaseAgent
 from typing import Dict, Any, Tuple
 import json
-from runtime.llm.client_factory import create_llm_client
+from runtime.llm import get_llm_adapter
 from runtime.llm.prompt_loader import PromptLoader
 
 class ProductAgent(BaseAgent):
     def __init__(self):
         super().__init__("Product")
-        self.llm_client = create_llm_client()
+        # 使用集中化的 LLMAdapter 入口，禁止直接使用 client
+        self.llm_adapter = get_llm_adapter()
         self.prompt_loader = PromptLoader()
     
     async def execute(self, context: Dict[str, Any], task_id: str) -> Dict[str, Any]:
@@ -25,8 +26,8 @@ class ProductAgent(BaseAgent):
         decision = "proceed"
         base_reason = "Spec 验证通过"
         
-        # LLM 调用：生成结构化分析
-        llm_output, llm_meta = await self._call_llm_for_analysis(spec)
+        # LLM 调用：生成结构化分析（传入 task_id, tenant）
+        llm_output, llm_meta = await self._call_llm_for_analysis(spec, task_id=task_id, tenant_id=context.get("tenant_id", "default"))
         
         # 构建 state_update（包含 LLM 输出，如果有）
         state_update = {
@@ -54,7 +55,7 @@ class ProductAgent(BaseAgent):
             "state_update": state_update
         }
     
-    async def _call_llm_for_analysis(self, spec: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    async def _call_llm_for_analysis(self, spec: Dict[str, Any], task_id: str = None, tenant_id: str = "default") -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """调用 LLM 进行 spec 分析"""
         prompt_data = self.prompt_loader.load_prompt("product", "spec_interpreter", "v1")
         
@@ -63,11 +64,15 @@ class ProductAgent(BaseAgent):
         user_prompt = prompt_data["user_prompt_template"].format(spec=spec_str)
         
         # 调用 LLM（使用新的 generate_json 接口）
-        result, meta = await self.llm_client.generate_json(
+        # 使用 adapter.call(...)，adapter 负责限流/重试/计费/trace 写入
+        result, meta = await self.llm_adapter.call(
             system_prompt=prompt_data["system_prompt"],
             user_prompt=user_prompt,
             schema=prompt_data.get("json_schema", {}),
-            meta={"prompt_version": prompt_data.get("version", "1.0")}
+            meta={"prompt_version": prompt_data.get("version", "1.0")},
+            task_id=task_id,
+            tenant_id=tenant_id,
+            model=prompt_data.get("model", None)
         )
         
         return result, meta

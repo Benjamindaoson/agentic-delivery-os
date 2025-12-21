@@ -60,7 +60,66 @@ class ExecutionEngine:
     
     async def initialize(self):
         """初始化执行引擎"""
-        pass
+        # 初始化 StateManager（确保持久化层可用）
+        try:
+            await self.state_manager.initialize()
+        except Exception as e:
+            raise RuntimeError(f"Failed to initialize StateManager: {e}")
+
+        # 验证 TraceStore 可用（目录可创建）
+        try:
+            # TraceStore constructor already ensures directories exist
+            _ = self.trace_store
+        except Exception as e:
+            raise RuntimeError(f"TraceStore initialization failed: {e}")
+
+        # 验证 EventStream 可用
+        try:
+            _ = self.event_stream
+        except Exception as e:
+            raise RuntimeError(f"EventStream initialization failed: {e}")
+
+        # 验证 PlanRegistry / PlanSelector 至少包含默认计划
+        try:
+            plans = self.plan_selector.registry.list_plans()
+            if not plans or len(plans) == 0:
+                raise RuntimeError("No execution plans registered in PlanRegistry")
+        except Exception as e:
+            raise RuntimeError(f"PlanSelector/PlanRegistry validation failed: {e}")
+
+        # 加载运行时配置（如果存在）
+        try:
+            import yaml, os
+            cfg_path = os.environ.get("RUNTIME_CONFIG_PATH", "configs/runtime.yaml")
+            if os.path.exists(cfg_path):
+                with open(cfg_path, "r", encoding="utf-8") as f:
+                    cfg = yaml.safe_load(f) or {}
+                    self.runtime_config = cfg.get("runtime", {})
+            else:
+                # 退回到系统级配置
+                sys_cfg_path = os.environ.get("SYSTEM_CONFIG_PATH", "configs/system.yaml")
+                if os.path.exists(sys_cfg_path):
+                    with open(sys_cfg_path, "r", encoding="utf-8") as f:
+                        sys_cfg = yaml.safe_load(f) or {}
+                        self.runtime_config = sys_cfg
+                else:
+                    self.runtime_config = {}
+        except Exception:
+            # 非致命：使用空配置
+            self.runtime_config = {}
+
+        # 初始化 observability/metrics hooks（若存在）
+        try:
+            from runtime.platform.metrics import MetricsRegistry
+            self.metrics = MetricsRegistry.get_default()
+        except Exception:
+            self.metrics = None
+
+        # Sanity: ensure required keys exist with safe defaults
+        self.runtime_config.setdefault("budget", {}).setdefault("default_max_cost", 1000.0)
+        self.runtime_config.setdefault("llm", {}).setdefault("mode", "mock")
+        # 初始化完成
+        return
     
     async def start_execution(self, task_id: str):
         """
@@ -91,7 +150,10 @@ class ExecutionEngine:
             context["decision_context"] = decision_context.to_dict()
             await self.state_manager.update_task_context(task_id, context)
             total_cost = 0.0
-            budget_limit = 1000.0
+            budget_limit = float(
+                self.runtime_config.get("budget", {}).get("default_max_cost", 
+                                                          self.runtime_config.get("budget", {}).get("default_max_cost", 1000.0))
+            )
             llm_fallback_count = 0
             
             # 获取上次 Evaluation 反馈（用于回流）
@@ -161,7 +223,19 @@ class ExecutionEngine:
                     llm_fallback_count += 1
                 
                 # 更新成本
-                total_cost += agent_report.cost_impact
+                # Recalculate total_cost from artifact cost_report.json (adapter writes estimated_cost)
+                try:
+                    import os, json
+                    cost_path = os.path.join("artifacts", "rag_project", task_id, "cost_report.json")
+                    if os.path.exists(cost_path):
+                        with open(cost_path, "r", encoding="utf-8") as cf:
+                            cost_entries = json.load(cf) or []
+                            total_cost = sum(e.get("estimated_cost", 0.0) for e in cost_entries)
+                    else:
+                        # fallback to agent_report.cost_impact
+                        total_cost += agent_report.cost_impact
+                except Exception:
+                    total_cost += agent_report.cost_impact
                 
                 # 治理检查点（在每个节点后）
                 gov_decision = await self._governance_checkpoint(
@@ -274,12 +348,15 @@ class ExecutionEngine:
                 progress={"currentAgent": "All", "currentStep": "completed"}
             )
         except Exception as e:
-            # 执行失败，状态迁移到 FAILED
+            # 执行失败，状态迁移到 FAILED（包含 traceback 以便审计）
+            import traceback as _tb
+            err_trace = _tb.format_exc()
             await self.state_manager.update_task_state(
-                task_id, 
-                "FAILED", 
+                task_id,
+                "FAILED",
                 str(e),
-                reason=f"Execution failed: {str(e)}"
+                progress=None,
+                reason=f"Execution failed: {str(e)}\nTRACE:{err_trace}"
             )
             # 即使失败也生成产物（包含错误信息和治理决策）
             try:
