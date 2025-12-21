@@ -1,14 +1,5 @@
 {
   "task_id": "task-golden",
-  "execution_plan": {
-    "plan_id": "golden-plan-v1",
-    "description": "Golden plan for CI replay test"
-  },
-  "agent_executions": []
-}
-
-{
-  "task_id": "task-golden",
   "agent_executions": [
     {
       "agent": "Product",
