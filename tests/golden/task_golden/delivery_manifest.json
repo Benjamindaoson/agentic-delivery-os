@@ -1,11 +1,5 @@
 {
   "task_id": "task-golden",
-  "generated_at": "2025-12-21T00:00:00Z",
-  "executed_agents": []
-}
-
-{
-  "task_id": "task-golden",
   "spec": {},
   "executed_agents": ["Product", "Execution", "Evaluation"],
   "agent_outputs": {
