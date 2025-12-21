@@ -30,6 +30,20 @@ services:
     networks:
       - agentic_network
 
+  postgres:
+    image: postgres:15-alpine
+    container_name: agentic_delivery_os_postgres
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=agentic
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - agentic_network
+
   frontend:
     build:
       context: ./frontend

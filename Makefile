@@ -11,6 +11,8 @@ setup:
 
 test:
 	$(PYTHON) -m pytest -q
+replay:
+	$(PYTHON) runtime/replay/replay_runner.py $(TASK_ID)
 
 build:
 	cd $(FRONTEND_DIR) && npm run build
@@ -23,6 +25,26 @@ eval:
 
 deploy:
 	docker compose up --build
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

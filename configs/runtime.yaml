@@ -1,0 +1,19 @@
+# 运行时可配置参数（开发/临时环境）
+runtime:
+  budget:
+    default_max_cost: 1000.0
+    cost_alert_threshold: 0.8
+    cost_termination_threshold: 1.0
+  llm:
+    mode: mock   # mock | real
+    fallback_threshold: 2
+  retries:
+    llm_max_retries: 2
+    tool_max_retries: 1
+  observability:
+    enable_metrics: true
+    metrics_port: 8001
+  state:
+    sqlite_path: runtime/state/tasks.db
+*** End Patch***)")]}]
+

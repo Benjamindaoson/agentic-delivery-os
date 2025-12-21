@@ -14,7 +14,27 @@ from runtime.execution_graph.execution_engine import ExecutionEngine
 
 class Orchestrator:
     def __init__(self):
-        self.state_manager = StateManager()
+        # StateManager SQLite path configurable via configs/runtime.yaml or env var
+        import os, yaml
+        cfg_path = os.environ.get("RUNTIME_CONFIG_PATH", "configs/runtime.yaml")
+        db_path = None
+        if os.path.exists(cfg_path):
+            try:
+                with open(cfg_path, "r", encoding="utf-8") as f:
+                    cfg = yaml.safe_load(f) or {}
+                    db_path = cfg.get("runtime", {}).get("state", {}).get("sqlite_path")
+            except Exception:
+                db_path = None
+        # Allow override via env
+        db_path = os.environ.get("STATE_SQLITE_PATH", db_path or "runtime/state/tasks.db")
+        # DATABASE_URL env indicates postgres in production
+        database_url = os.environ.get("DATABASE_URL", "")
+        if database_url and database_url.startswith("postgres"):
+            # lazy import postgres manager (moved to backends)
+            from runtime.state.backends.postgres_state_manager import PostgresStateManager
+            self.state_manager = PostgresStateManager(database_url)
+        else:
+            self.state_manager = StateManager(db_path=db_path)
         self.execution_engine = ExecutionEngine(self.state_manager)
     
     async def initialize(self):

@@ -8,6 +8,12 @@ from backend.orchestration import orchestrator
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    # print effective config for operators
+    try:
+        from runtime.config import print_effective_config
+        print_effective_config()
+    except Exception:
+        pass
     await orchestrator.initialize()
     yield
     # Shutdown (if needed)

@@ -6,6 +6,7 @@ import yaml
 from typing import Dict, Any
 from runtime.llm.providers.qwen_client import QwenClient
 from runtime.llm.providers.openai_client import OpenAIClient
+from runtime.llm.mock_client import MockLLMClient
 
 def create_llm_client(config_path: str = "configs/system.yaml") -> "LLMClient":
     """
@@ -15,7 +16,10 @@ def create_llm_client(config_path: str = "configs/system.yaml") -> "LLMClient":
     # 读取配置
     llm_config = _load_llm_config(config_path)
     
-    # 从环境变量或配置获取 provider
+    # 模式切换：支持 mock | real
+    mode = os.getenv("LLM_MODE", llm_config.get("mode", llm_config.get("provider_mode", "mock"))).lower()
+
+    # 从环境变量或配置获取 provider（仅在 real 模式使用）
     provider = os.getenv("LLM_PROVIDER", llm_config.get("provider", "qwen")).lower()
     
     # 构建 client config
@@ -30,7 +34,11 @@ def create_llm_client(config_path: str = "configs/system.yaml") -> "LLMClient":
         "base_url": llm_config.get("base_url")
     }
     
-    # 创建对应的 client
+    # 如果模式为 mock，返回 MockLLMClient（deterministic）
+    if mode == "mock":
+        return MockLLMClient(client_config)
+
+    # 否则尝试创建真实 provider client
     if provider == "qwen":
         return QwenClient(client_config)
     elif provider == "openai":
@@ -54,6 +62,26 @@ def _load_llm_config(config_path: str) -> Dict[str, Any]:
             "max_tokens": 512,
             "top_p": 1.0
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

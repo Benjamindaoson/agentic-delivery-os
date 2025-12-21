@@ -1,0 +1,9 @@
+# Model -> price per token (USD)
+models:
+  qwen-turbo: 0.000001
+  qwen-turbo-large: 0.000002
+  gpt-3.5-turbo: 0.000002
+  gpt-4: 0.00006
+default_price_per_token: 0.000001
+
+
