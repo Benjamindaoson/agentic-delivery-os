@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.api import delivery, task
 from backend.api import data_intel
 from backend.orchestration import orchestrator
+from backend.api import workbench
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,6 +37,7 @@ app.include_router(task.router, prefix="/api/task", tags=["task"])
 from backend.api import expression
 app.include_router(expression.router, prefix="/api/expression", tags=["expression"])
 app.include_router(data_intel.router, prefix="/api", tags=["data-intel"])
+app.include_router(workbench.router, prefix="/api", tags=["workbench"])
 
 @app.get("/api/health")
 async def health():
