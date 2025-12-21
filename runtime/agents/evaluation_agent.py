@@ -26,8 +26,8 @@ class EvaluationAgent(BaseAgent):
         # 构建 context summary 供 LLM 使用
         context_summary = self._build_context_summary(context)
         
-        # LLM 调用：生成评估结果
-        llm_output, llm_meta = await self._call_llm_for_review(context_summary)
+        # LLM 调用：生成评估结果，传入 task_id 与 tenant 信息以便 adapter 写入 trace/cost
+        llm_output, llm_meta = await self._call_llm_for_review(context_summary, task_id=task_id, tenant_id=context.get("tenant_id", "default"))
         
         # 构建 evaluation_result（工程规则决定 passed）
         # 注意：这里 passed 由工程规则决定，但会输出结构化信号供回流使用
@@ -130,7 +130,7 @@ class EvaluationAgent(BaseAgent):
         
         return "\n".join(summary_parts) if summary_parts else "Execution context available"
     
-    async def _call_llm_for_review(self, context_summary: str) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    async def _call_llm_for_review(self, context_summary: str, task_id: str = None, tenant_id: str = "default") -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """调用 LLM 进行评估审查"""
         prompt_data = self.prompt_loader.load_prompt("evaluation", "reviewer", "v1")
         
@@ -144,7 +144,7 @@ class EvaluationAgent(BaseAgent):
             schema=prompt_data.get("json_schema", {}),
             meta={"prompt_version": prompt_data.get("version", "1.0")},
             task_id=task_id,
-            tenant_id=context.get("tenant_id", "default"),
+            tenant_id=tenant_id,
             model=prompt_data.get("model", None)
         )
         

@@ -7,6 +7,7 @@ from typing import Dict, Any
 from runtime.llm.providers.qwen_client import QwenClient
 from runtime.llm.providers.openai_client import OpenAIClient
 from runtime.llm.mock_client import MockLLMClient
+from runtime.llm.base_client import LLMClient
 
 def create_llm_client(config_path: str = "configs/system.yaml") -> "LLMClient":
     """

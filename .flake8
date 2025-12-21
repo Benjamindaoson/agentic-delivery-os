@@ -1,0 +1,14 @@
+[flake8]
+exclude =
+    .venv,
+    venv,
+    __pycache__,
+    .git,
+    .github,
+    node_modules,
+    frontend/node_modules,
+    artifacts
+max-line-length = 127
+max-complexity = 10
+ignore = E203, W503
+
