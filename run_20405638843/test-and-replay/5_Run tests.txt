@@ -1,0 +1,59 @@
+﻿2025-12-21T06:04:24.9240007Z ##[group]Run pytest -q
+2025-12-21T06:04:24.9240283Z [36;1mpytest -q[0m
+2025-12-21T06:04:24.9274272Z shell: /usr/bin/bash -e {0}
+2025-12-21T06:04:24.9274666Z env:
+2025-12-21T06:04:24.9274941Z   pythonLocation: /opt/hostedtoolcache/Python/3.10.19/x64
+2025-12-21T06:04:24.9275354Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.10.19/x64/lib/pkgconfig
+2025-12-21T06:04:24.9275762Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.19/x64
+2025-12-21T06:04:24.9276108Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.19/x64
+2025-12-21T06:04:24.9276446Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.19/x64
+2025-12-21T06:04:24.9276779Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.10.19/x64/lib
+2025-12-21T06:04:24.9277065Z ##[endgroup]
+2025-12-21T06:04:27.6957790Z .......................F..............................                   [100%]
+2025-12-21T06:04:27.6958352Z =================================== FAILURES ===================================
+2025-12-21T06:04:27.6958844Z ______________________________ test_golden_replay ______________________________
+2025-12-21T06:04:27.6959409Z 
+2025-12-21T06:04:27.6959805Z tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_golden_replay0')
+2025-12-21T06:04:27.6960398Z 
+2025-12-21T06:04:27.6960616Z     def test_golden_replay(tmp_path):
+2025-12-21T06:04:27.6961469Z         # copy checked-in golden artifact into repository artifacts/rag_project/task-golden
+2025-12-21T06:04:27.6962379Z         src = os.path.join("tests", "golden", "task_golden")
+2025-12-21T06:04:27.6962956Z         dest_root = os.path.join(os.getcwd(), "artifacts", "rag_project")
+2025-12-21T06:04:27.6963501Z         os.makedirs(dest_root, exist_ok=True)
+2025-12-21T06:04:27.6964114Z         shutil.copytree(src, os.path.join(dest_root, "task-golden"), dirs_exist_ok=True)
+2025-12-21T06:04:27.6964982Z     
+2025-12-21T06:04:27.6965257Z         # run replay (the function reads artifacts/rag_project/task-golden)
+2025-12-21T06:04:27.6965608Z >       report = replay_task("task-golden")
+2025-12-21T06:04:27.6965799Z 
+2025-12-21T06:04:27.6965893Z tests/test_golden_replay.py:14: 
+2025-12-21T06:04:27.6966157Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2025-12-21T06:04:27.6966485Z runtime/replay/replay_runner.py:42: in replay_task
+2025-12-21T06:04:27.6966789Z     manifest = _load_manifest(artifact_dir)
+2025-12-21T06:04:27.6967640Z runtime/replay/replay_runner.py:24: in _load_manifest
+2025-12-21T06:04:27.6967938Z     return json.load(f)
+2025-12-21T06:04:27.6968284Z /opt/hostedtoolcache/Python/3.10.19/x64/lib/python3.10/json/__init__.py:293: in load
+2025-12-21T06:04:27.6968683Z     return loads(fp.read(),
+2025-12-21T06:04:27.6969035Z /opt/hostedtoolcache/Python/3.10.19/x64/lib/python3.10/json/__init__.py:346: in loads
+2025-12-21T06:04:27.6969442Z     return _default_decoder.decode(s)
+2025-12-21T06:04:27.6969722Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2025-12-21T06:04:27.6969924Z 
+2025-12-21T06:04:27.6970062Z self = <json.decoder.JSONDecoder object at 0x7fbd7c2b1360>
+2025-12-21T06:04:27.6970850Z s = '{\n  "task_id": "task-golden",\n  "generated_at": "2025-12-21T00:00:00Z",\n  "executed_agents": []\n}\n\n{\n  "task_i...\n  "final_state": "COMPLETED",\n  "created_at": "2025-12-21T00:00:00Z",\n  "failed": false,\n  "error": null\n}\n\n\n'
+2025-12-21T06:04:27.6971671Z _w = <built-in method match of re.Pattern object at 0x7fbd7c64b370>
+2025-12-21T06:04:27.6971926Z 
+2025-12-21T06:04:27.6972027Z     def decode(self, s, _w=WHITESPACE.match):
+2025-12-21T06:04:27.6972379Z         """Return the Python representation of ``s`` (a ``str`` instance
+2025-12-21T06:04:27.6972710Z         containing a JSON document).
+2025-12-21T06:04:27.6972934Z     
+2025-12-21T06:04:27.6973080Z         """
+2025-12-21T06:04:27.6973284Z         obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+2025-12-21T06:04:27.6973539Z         end = _w(s, end).end()
+2025-12-21T06:04:27.6973745Z         if end != len(s):
+2025-12-21T06:04:27.6973978Z >           raise JSONDecodeError("Extra data", s, end)
+2025-12-21T06:04:27.6974848Z E           json.decoder.JSONDecodeError: Extra data: line 7 column 1 (char 99)
+2025-12-21T06:04:27.6975126Z 
+2025-12-21T06:04:27.6975377Z /opt/hostedtoolcache/Python/3.10.19/x64/lib/python3.10/json/decoder.py:340: JSONDecodeError
+2025-12-21T06:04:27.6975815Z =========================== short test summary info ============================
+2025-12-21T06:04:27.6976470Z FAILED tests/test_golden_replay.py::test_golden_replay - json.decoder.JSONDecodeError: Extra data: line 7 column 1 (char 99)
+2025-12-21T06:04:27.6976968Z 1 failed, 53 passed in 1.94s
+2025-12-21T06:04:27.7477483Z ##[error]Process completed with exit code 1.

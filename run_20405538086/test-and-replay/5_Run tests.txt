@@ -1,0 +1,82 @@
+﻿2025-12-21T05:53:25.9818062Z ##[group]Run pytest -q
+2025-12-21T05:53:25.9818332Z [36;1mpytest -q[0m
+2025-12-21T05:53:25.9852671Z shell: /usr/bin/bash -e {0}
+2025-12-21T05:53:25.9853017Z env:
+2025-12-21T05:53:25.9853313Z   pythonLocation: /opt/hostedtoolcache/Python/3.10.19/x64
+2025-12-21T05:53:25.9853714Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.10.19/x64/lib/pkgconfig
+2025-12-21T05:53:25.9854120Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.19/x64
+2025-12-21T05:53:25.9854452Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.19/x64
+2025-12-21T05:53:25.9854794Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.10.19/x64
+2025-12-21T05:53:25.9855132Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.10.19/x64/lib
+2025-12-21T05:53:25.9855431Z ##[endgroup]
+2025-12-21T05:53:28.8761946Z .......................F..............................                   [100%]
+2025-12-21T05:53:28.8762689Z =================================== FAILURES ===================================
+2025-12-21T05:53:28.8763655Z ______________________________ test_golden_replay ______________________________
+2025-12-21T05:53:28.8764287Z 
+2025-12-21T05:53:28.8764691Z tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-0/test_golden_replay0')
+2025-12-21T05:53:28.8765276Z 
+2025-12-21T05:53:28.8765477Z     def test_golden_replay(tmp_path):
+2025-12-21T05:53:28.8766213Z         # copy checked-in golden artifact into repository artifacts/rag_project/task-golden
+2025-12-21T05:53:28.8767032Z         src = os.path.join("tests", "golden", "task_golden")
+2025-12-21T05:53:28.8767705Z         dest_root = os.path.join(os.getcwd(), "artifacts", "rag_project")
+2025-12-21T05:53:28.8768336Z         os.makedirs(dest_root, exist_ok=True)
+2025-12-21T05:53:28.8769049Z >       shutil.copytree(src, os.path.join(dest_root, "task-golden"), dirs_exist_ok=True)
+2025-12-21T05:53:28.8769613Z 
+2025-12-21T05:53:28.8769762Z tests/test_golden_replay.py:11: 
+2025-12-21T05:53:28.8770192Z _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+2025-12-21T05:53:28.8770401Z 
+2025-12-21T05:53:28.8770492Z src = 'tests/golden/task_golden'
+2025-12-21T05:53:28.8770926Z dst = '/home/runner/work/agentic-delivery-os/agentic-delivery-os/artifacts/rag_project/task-golden'
+2025-12-21T05:53:28.8771374Z symlinks = False, ignore = None
+2025-12-21T05:53:28.8771623Z copy_function = <function copy2 at 0x7f59608fc160>
+2025-12-21T05:53:28.8772253Z ignore_dangling_symlinks = False, dirs_exist_ok = True
+2025-12-21T05:53:28.8772454Z 
+2025-12-21T05:53:28.8772632Z     def copytree(src, dst, symlinks=False, ignore=None, copy_function=copy2,
+2025-12-21T05:53:28.8773238Z                  ignore_dangling_symlinks=False, dirs_exist_ok=False):
+2025-12-21T05:53:28.8773626Z         """Recursively copy a directory tree and return the destination directory.
+2025-12-21T05:53:28.8773941Z     
+2025-12-21T05:53:28.8774177Z         If exception(s) occur, an Error is raised with a list of reasons.
+2025-12-21T05:53:28.8774470Z     
+2025-12-21T05:53:28.8774682Z         If the optional symlinks flag is true, symbolic links in the
+2025-12-21T05:53:28.8775054Z         source tree result in symbolic links in the destination tree; if
+2025-12-21T05:53:28.8775411Z         it is false, the contents of the files pointed to by symbolic
+2025-12-21T05:53:28.8775765Z         links are copied. If the file pointed by the symlink doesn't
+2025-12-21T05:53:28.8776126Z         exist, an exception will be added in the list of errors raised in
+2025-12-21T05:53:28.8776468Z         an Error exception at the end of the copy process.
+2025-12-21T05:53:28.8776721Z     
+2025-12-21T05:53:28.8776951Z         You can set the optional ignore_dangling_symlinks flag to true if you
+2025-12-21T05:53:28.8777340Z         want to silence this exception. Notice that this has no effect on
+2025-12-21T05:53:28.8777662Z         platforms that don't support os.symlink.
+2025-12-21T05:53:28.8777899Z     
+2025-12-21T05:53:28.8778101Z         The optional ignore argument is a callable. If given, it
+2025-12-21T05:53:28.8778465Z         is called with the `src` parameter, which is the directory
+2025-12-21T05:53:28.8779019Z         being visited by copytree(), and `names` which is the list of
+2025-12-21T05:53:28.8779343Z         `src` contents, as returned by os.listdir():
+2025-12-21T05:53:28.8779587Z     
+2025-12-21T05:53:28.8779774Z             callable(src, names) -> ignored_names
+2025-12-21T05:53:28.8780013Z     
+2025-12-21T05:53:28.8780232Z         Since copytree() is called recursively, the callable will be
+2025-12-21T05:53:28.8780594Z         called once for each directory that is copied. It returns a
+2025-12-21T05:53:28.8780932Z         list of names relative to the `src` directory that should
+2025-12-21T05:53:28.8781211Z         not be copied.
+2025-12-21T05:53:28.8781386Z     
+2025-12-21T05:53:28.8781624Z         The optional copy_function argument is a callable that will be used
+2025-12-21T05:53:28.8782008Z         to copy each file. It will be called with the source path and the
+2025-12-21T05:53:28.8782390Z         destination path as arguments. By default, copy2() is used, but any
+2025-12-21T05:53:28.8782977Z         function that supports the same signature (like copy()) can be used.
+2025-12-21T05:53:28.8783281Z     
+2025-12-21T05:53:28.8783505Z         If dirs_exist_ok is false (the default) and `dst` already exists, a
+2025-12-21T05:53:28.8783894Z         `FileExistsError` is raised. If `dirs_exist_ok` is true, the copying
+2025-12-21T05:53:28.8784324Z         operation will continue if it encounters existing directories, and files
+2025-12-21T05:53:28.8784746Z         within the `dst` tree will be overwritten by corresponding files from the
+2025-12-21T05:53:28.8785051Z         `src` tree.
+2025-12-21T05:53:28.8785224Z         """
+2025-12-21T05:53:28.8785403Z         sys.audit("shutil.copytree", src, dst)
+2025-12-21T05:53:28.8785660Z >       with os.scandir(src) as itr:
+2025-12-21T05:53:28.8786012Z E       FileNotFoundError: [Errno 2] No such file or directory: 'tests/golden/task_golden'
+2025-12-21T05:53:28.8786307Z 
+2025-12-21T05:53:28.8786536Z /opt/hostedtoolcache/Python/3.10.19/x64/lib/python3.10/shutil.py:557: FileNotFoundError
+2025-12-21T05:53:28.8786971Z =========================== short test summary info ============================
+2025-12-21T05:53:28.8787625Z FAILED tests/test_golden_replay.py::test_golden_replay - FileNotFoundError: [Errno 2] No such file or directory: 'tests/golden/task_golden'
+2025-12-21T05:53:28.8788305Z 1 failed, 53 passed in 2.01s
+2025-12-21T05:53:28.9275378Z ##[error]Process completed with exit code 1.

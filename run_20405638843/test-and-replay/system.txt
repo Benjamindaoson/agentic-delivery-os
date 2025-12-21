@@ -1,0 +1,5 @@
+2025-12-21T06:04:09.7650000Z Requested labels: ubuntu-latest
+2025-12-21T06:04:09.7650000Z Job defined at: Benjamindaoson/agentic-delivery-os/.github/workflows/golden-replay.yml@refs/heads/master
+2025-12-21T06:04:09.7650000Z Waiting for a runner to pick up this job...
+2025-12-21T06:04:10.2660000Z Job is about to start running on the hosted runner: GitHub Actions 1000001734
+2025-12-21T06:04:10.2660000Z Job is waiting for a hosted runner to come online.

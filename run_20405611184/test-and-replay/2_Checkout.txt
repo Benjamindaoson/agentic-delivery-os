@@ -1,0 +1,72 @@
+﻿2025-12-21T06:01:58.0930695Z ##[group]Run actions/checkout@v4
+2025-12-21T06:01:58.0931591Z with:
+2025-12-21T06:01:58.0932060Z   repository: Benjamindaoson/agentic-delivery-os
+2025-12-21T06:01:58.0932822Z   token: ***
+2025-12-21T06:01:58.0933237Z   ssh-strict: true
+2025-12-21T06:01:58.0933705Z   ssh-user: git
+2025-12-21T06:01:58.0934102Z   persist-credentials: true
+2025-12-21T06:01:58.0934600Z   clean: true
+2025-12-21T06:01:58.0935045Z   sparse-checkout-cone-mode: true
+2025-12-21T06:01:58.0935516Z   fetch-depth: 1
+2025-12-21T06:01:58.0935946Z   fetch-tags: false
+2025-12-21T06:01:58.0936360Z   show-progress: true
+2025-12-21T06:01:58.0936811Z   lfs: false
+2025-12-21T06:01:58.0937293Z   submodules: false
+2025-12-21T06:01:58.0937778Z   set-safe-directory: true
+2025-12-21T06:01:58.0938473Z ##[endgroup]
+2025-12-21T06:01:58.1927949Z Syncing repository: Benjamindaoson/agentic-delivery-os
+2025-12-21T06:01:58.1929789Z ##[group]Getting Git version info
+2025-12-21T06:01:58.1930656Z Working directory is '/home/runner/work/agentic-delivery-os/agentic-delivery-os'
+2025-12-21T06:01:58.1931827Z [command]/usr/bin/git version
+2025-12-21T06:01:58.1987142Z git version 2.52.0
+2025-12-21T06:01:58.2009556Z ##[endgroup]
+2025-12-21T06:01:58.2030586Z Temporarily overriding HOME='/home/runner/work/_temp/4b22d608-886c-449d-860d-0d7213bd1dd3' before making global git config changes
+2025-12-21T06:01:58.2031861Z Adding repository directory to the temporary git global config as a safe directory
+2025-12-21T06:01:58.2035150Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/agentic-delivery-os/agentic-delivery-os
+2025-12-21T06:01:58.2069386Z Deleting the contents of '/home/runner/work/agentic-delivery-os/agentic-delivery-os'
+2025-12-21T06:01:58.2072760Z ##[group]Initializing the repository
+2025-12-21T06:01:58.2077550Z [command]/usr/bin/git init /home/runner/work/agentic-delivery-os/agentic-delivery-os
+2025-12-21T06:01:58.2169778Z hint: Using 'master' as the name for the initial branch. This default branch name
+2025-12-21T06:01:58.2171268Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2025-12-21T06:01:58.2172905Z hint: to use in all of your new repositories, which will suppress this warning,
+2025-12-21T06:01:58.2173958Z hint: call:
+2025-12-21T06:01:58.2174357Z hint:
+2025-12-21T06:01:58.2174888Z hint: 	git config --global init.defaultBranch <name>
+2025-12-21T06:01:58.2175458Z hint:
+2025-12-21T06:01:58.2175983Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2025-12-21T06:01:58.2176826Z hint: 'development'. The just-created branch can be renamed via this command:
+2025-12-21T06:01:58.2178154Z hint:
+2025-12-21T06:01:58.2178539Z hint: 	git branch -m <name>
+2025-12-21T06:01:58.2179039Z hint:
+2025-12-21T06:01:58.2179590Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2025-12-21T06:01:58.2180636Z Initialized empty Git repository in /home/runner/work/agentic-delivery-os/agentic-delivery-os/.git/
+2025-12-21T06:01:58.2183001Z [command]/usr/bin/git remote add origin https://github.com/Benjamindaoson/agentic-delivery-os
+2025-12-21T06:01:58.2216438Z ##[endgroup]
+2025-12-21T06:01:58.2220255Z ##[group]Disabling automatic garbage collection
+2025-12-21T06:01:58.2221706Z [command]/usr/bin/git config --local gc.auto 0
+2025-12-21T06:01:58.2247060Z ##[endgroup]
+2025-12-21T06:01:58.2248317Z ##[group]Setting up auth
+2025-12-21T06:01:58.2253965Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-12-21T06:01:58.2280472Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-12-21T06:01:58.2547883Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-12-21T06:01:58.2571788Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-12-21T06:01:58.2738429Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2025-12-21T06:01:58.2764584Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2025-12-21T06:01:58.2933648Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2025-12-21T06:01:58.2961660Z ##[endgroup]
+2025-12-21T06:01:58.2962513Z ##[group]Fetching the repository
+2025-12-21T06:01:58.2969437Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +875ec96ce266639ac80037e8eb030e50209e6a5f:refs/remotes/origin/master
+2025-12-21T06:01:59.1718334Z From https://github.com/Benjamindaoson/agentic-delivery-os
+2025-12-21T06:01:59.1721081Z  * [new ref]         875ec96ce266639ac80037e8eb030e50209e6a5f -> origin/master
+2025-12-21T06:01:59.1747149Z ##[endgroup]
+2025-12-21T06:01:59.1749290Z ##[group]Determining the checkout info
+2025-12-21T06:01:59.1751654Z ##[endgroup]
+2025-12-21T06:01:59.1754192Z [command]/usr/bin/git sparse-checkout disable
+2025-12-21T06:01:59.1788290Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2025-12-21T06:01:59.1810202Z ##[group]Checking out the ref
+2025-12-21T06:01:59.1813393Z [command]/usr/bin/git checkout --progress --force -B master refs/remotes/origin/master
+2025-12-21T06:01:59.3653373Z Reset branch 'master'
+2025-12-21T06:01:59.3654629Z branch 'master' set up to track 'origin/master'.
+2025-12-21T06:01:59.3664380Z ##[endgroup]
+2025-12-21T06:01:59.3696068Z [command]/usr/bin/git log -1 --format=%H
+2025-12-21T06:01:59.3714296Z 875ec96ce266639ac80037e8eb030e50209e6a5f
