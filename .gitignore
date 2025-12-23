@@ -1,82 +1,95 @@
+############################
 # Python
+############################
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+
+# Virtual Environments
 env/
 venv/
 .venv/
 ENV/
+
+# Packaging
 *.egg-info/
 dist/
 build/
 
-# Node
+############################
+# Node / Web (Next.js)
+############################
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+
+# Next.js build artifacts (CRITICAL)
+apps/web/.next/
+apps/web/.next/**
+
+# Generic frontend builds
 dist/
 dist-ssr/
 *.local
 
+############################
 # Database
+############################
 *.db
 *.sqlite
 *.sqlite3
 
-# IDE
+############################
+# IDE / Editor
+############################
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
+############################
 # OS
+############################
 .DS_Store
 Thumbs.db
 
+############################
 # Logs
+############################
 *.log
 
-# Environment
+############################
+# Environment variables
+############################
 .env
 .env.local
 
-# Runtime artifacts
-artifacts/
+############################
+# Runtime / Execution Artifacts
+############################
+
+# Agent execution sandboxes (ephemeral)
 runtime/tools/sandbox/
+
+# Tracing / runtime state (do NOT version)
 trace_store/
-# *.json  # Commented out - too broad, blocks package.json etc.
 
+# Generated artifacts (model outputs, temp eval runs)
+artifacts/**
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+############################
+# Explicitly KEEP (do NOT ignore)
+############################
+# These are intentional system assets:
+# - benchmarks/
+# - docs/
+# - memory/
+# - security/
+#
+# They represent Agent knowledge, evaluation logic,
+# and governance assets and SHOULD be versioned.
