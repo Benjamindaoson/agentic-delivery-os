@@ -1,294 +1,335 @@
-# Agentic Delivery OS - L5 Complete System
+# Agentic Delivery OS
 
-> **Long-Horizon, Self-Evolving, Governed Agent System**
+**From vague LLM ideas to production-grade, auditable systems**
 
-A complete multi-agent AI delivery platform with long-term learning, policy evolution, and human-facing interfaces.
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Status](https://img.shields.io/badge/status-L6%20Certified-success.svg)](#)
 
-## 🚀 Quick Start
+---
 
-### One-Command Launch
+## Why This Exists
 
-```bash
-# Start Web UI (default)
-python run.py
+Most "AI agent frameworks" are demos. They show you how to chain LLM calls.
 
-# Or choose specific mode:
-python run.py web    # Streamlit workbench at http://localhost:8501
-python run.py api    # REST API at http://localhost:8000
-python run.py cli    # Command-line interface
+**This is not that.**
+
+The industry has a delivery problem:
+- **Prompt engineering ≠ Production engineering**
+- LLM outputs are non-deterministic, but systems must be auditable
+- "It works on my machine" doesn't cut it when compliance is involved
+- Agent frameworks optimize for demos, not for rollback, governance, or multi-tenancy
+
+**Agentic Delivery OS** solves the gap between "I want to build an AI system" and "I need to ship, monitor, rollback, and audit it in production."
+
+---
+
+## What This Is
+
+A **distributed, multi-tenant agent orchestration platform** that treats AI delivery as an engineering discipline, not a research experiment.
+
+**This is NOT:**
+- ❌ A chatbot framework
+- ❌ A prompt playground
+- ❌ An AutoGPT clone
+- ❌ A one-shot code generator
+
+**This IS:**
+- ✅ A production delivery system with governance gates
+- ✅ A multi-agent orchestrator with explicit DAGs, not implicit loops
+- ✅ A platform where every decision is auditable and replayable
+- ✅ An architecture that enforces separation between planning, execution, and evaluation
+
+---
+
+## Core System Design
+
+### The Problem with "Agent Frameworks"
+
+Most frameworks treat agents as autonomous entities that "figure it out." This fails in production because:
+1. **No accountability** — who decided to delete that data?
+2. **No rollback** — how do you undo an agent's action?
+3. **No governance** — how do you enforce cost limits or compliance rules?
+
+### Our Approach: Agents as Roles, Not Personalities
+
+```mermaid
+graph TD
+    User[User: Natural Language Spec] --> Product[Product Agent: Spec Validation]
+    Product --> Orchestrator[Orchestrator: DAG Execution]
+    Orchestrator --> Data[Data Agent: Ingestion & Parsing]
+    Orchestrator --> Execution[Execution Agent: Build & Deploy]
+    Orchestrator --> Evaluation[Evaluation Agent: Quality Gate]
+    Orchestrator --> Cost[Cost Agent: Budget Enforcement]
+    
+    Data --> Artifacts[Delivery Artifacts]
+    Execution --> Artifacts
+    Evaluation --> Gate{Quality Gate}
+    
+    Gate -->|Pass| Deploy[Deploy to Production]
+    Gate -->|Fail| Rollback[Auto-Rollback]
+    
+    Cost -.->|Budget Exceeded| Orchestrator
+    
+    style Product fill:#e1f5ff
+    style Orchestrator fill:#fff4e1
+    style Evaluation fill:#ffe1e1
+    style Deploy fill:#e1ffe1
+    style Rollback fill:#ffe1e1
 ```
 
-### Prerequisites
+Each agent has **one job**, **explicit inputs/outputs**, and **failure semantics**.
 
-- Python 3.10+
-- 2GB RAM minimum
-- SQLite (bundled)
+---
 
-### Installation
+## Repository Structure
+
+```
+agentic_delivery_os/
+├── benchmarks/           # Evaluation tasks & regression tests
+│   ├── default_tasks.json
+│   └── tasks/            # Task definitions
+│
+├── memory/               # Long-term learning & agent profiles
+│   ├── agent_profiles/   # Performance history per agent
+│   ├── extracted_patterns/  # Cross-run pattern mining
+│   └── global_state.db   # SQLite-backed memory
+│
+├── learning/             # Advanced learning algorithms
+│   ├── contextual_bandit.py   # Context-aware strategy selection
+│   ├── offline_rl.py          # Safe RL from replay buffer
+│   ├── meta_policy.py         # Cross-tenant pattern learning
+│   └── unified_policy.py      # Policy orchestration
+│
+├── runtime/              # Execution engine
+│   ├── agents/           # Role-based agent implementations
+│   ├── concurrency/      # Execution pool & rate limiting
+│   ├── distributed/      # Control plane & worker management
+│   ├── tenancy/          # Multi-tenant isolation
+│   └── governance/       # Access control & safety gates
+│
+├── backend/              # API layer
+│   ├── api/              # REST endpoints
+│   └── orchestration/    # Task scheduling
+│
+├── apps/web/             # Control plane UI (Next.js)
+│   ├── src/app/          # Pages: projects, runs, agents
+│   └── src/components/   # Reusable UI components
+│
+└── security/             # Governance & compliance
+    └── (opt-in tenant privacy controls)
+```
+
+**Key Insight:** This isn't a monolith. It's a **layered system** where each layer has a contract.
+
+---
+
+## What Makes It Different
+
+### 1. **Governance-First, Not Prompt-First**
+
+| Traditional Agent Frameworks | Agentic Delivery OS |
+|------------------------------|---------------------|
+| "Let the agent decide" | Explicit decision gates |
+| Retry until it works | Fail fast with rollback |
+| Black-box execution | Full audit trail (JSON artifacts) |
+| One-shot demos | Multi-tenant production |
+
+### 2. **Replayability as a First-Class Citizen**
+
+Every run produces a complete artifact trail:
+```
+artifacts/
+├── session/          # Cross-run session state
+├── goals/            # Goal interpretation & planning
+├── agent_profiles/   # Agent performance metrics
+├── eval/             # Quality scores & benchmarks
+└── learning/         # Policy updates & rationale
+```
+
+You can **replay any run** to understand exactly what happened and why.
+
+### 3. **Learning That Doesn't Break Production**
+
+- **Contextual Bandit (LinUCB)**: Adapts strategy selection based on run context (goal type, cost constraints, risk level)
+- **Offline RL (Conservative Q-Learning)**: Learns from replay buffer, never touches production directly
+- **Meta-Learning**: Cross-tenant pattern extraction with privacy-preserving opt-in controls
+
+**Safety guarantee:** RL policies run in shadow mode and require approval before production use.
+
+### 4. **Multi-Tenancy with Real Isolation**
+
+Not just "user IDs in a database." Each tenant gets:
+- Isolated memory & learning state
+- Budget profiles with cost enforcement
+- Policy spaces (custom planner/tool/agent configurations)
+- Opt-in/opt-out for meta-learning
+
+---
+
+## Use Cases
+
+### Enterprise RAG Delivery
+Non-technical users specify requirements via a wizard. The system:
+1. Validates the spec
+2. Ingests & parses documents
+3. Builds retrieval index
+4. Runs evaluation benchmarks
+5. Deploys with rollback capability
+
+**Output:** A production-ready RAG system, not a Jupyter notebook.
+
+### Multi-Agent Task Orchestration
+Define complex workflows with explicit DAGs:
+- Conditional branching based on agent outputs
+- Cost-aware path selection
+- Automatic rollback on quality gate failures
+
+### Continuous Learning from Production
+- Agents track task affinity (which agents excel at which tasks)
+- Tools track ROI (cost vs. value contributed)
+- Policies auto-promote when quality score > 0.9
+
+---
+
+## Quick Start
 
 ```bash
-# Clone and setup
-git clone <repo>
-cd agentic_delivery_os
+# Clone the repo
+git clone https://github.com/Benjamindaoson/agentic-delivery-os.git
+cd agentic-delivery-os
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Run
-python run.py web
+# Start the system (choose one)
+python run.py web    # Web UI at http://localhost:8501
+python run.py api    # REST API at http://localhost:8000
+python run.py cli    # Command-line interface
 ```
 
-## 🎯 System Architecture
-
-### 10-Layer Stack
-
-| Layer | Purpose | Artifacts |
-|-------|---------|-----------|
-| **1. Ingress** | Task classification, session management | `session/*.json`, `task_type/*.json` |
-| **2. Planning** | Goal → Plan → DAG decomposition | `goals/*_{goal,plan,decomposition,graph}.json` |
-| **3. Agents** | Long-term profiles, policy versioning | `agent_profiles/*.json`, `agent_policies/*.json` |
-| **4. Tooling** | Tool stats, ROI tracking, sandbox policies | `tool_profiles/*.json`, `tool_failures/*.json` |
-| **5. Memory** | Short-term traces, long-term DB, global state | `memory/long_term/`, `memory/global_state.json` |
-| **6. Retrieval** | Policy-driven document retrieval | `retrieval/*.json` |
-| **7. Evaluation** | Benchmark suite, regression detection | `eval/*.json`, `benchmarks/` |
-| **8. Learning** | Cross-run reward, policy promotion | `learning/promotions_*.json` |
-| **9. Governance** | Access control, injection guards, cost limits | (inline checks) |
-| **10. Observability** | Web UI, REST API, CLI | `artifacts/**/*.json` |
-
-## 🖥️ CLI Usage
-
-```bash
-# Execute a task
-python agentctl.py run "What is machine learning?"
-
-# Inspect a completed run
-python agentctl.py inspect run_abc123
-
-# Replay historical execution
-python agentctl.py replay run_abc123
-
-# List entities
-python agentctl.py list runs
-python agentctl.py list agents
-python agentctl.py list tools
-python agentctl.py list sessions
-
-# Start API server
-python agentctl.py serve --port 8000
-```
-
-## 🌐 REST API
-
-Start the API server:
-
-```bash
-python run.py api
-```
-
-### Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/run` | POST | Execute a new task |
-| `/session/{id}` | GET | Get session details |
-| `/run/{id}` | GET | Get run details with artifacts |
-| `/artifacts/{id}` | GET | Get all artifacts for a run |
-| `/replay/{id}` | POST | Replay a historical run |
-| `/agents` | GET | List all agent profiles |
-| `/tools` | GET | List all tool profiles |
-| `/runs?limit=20` | GET | List recent runs |
-
-**API Docs:** http://localhost:8000/docs
-
-## 🎨 Web Workbench
-
-```bash
-python run.py web
-```
-
-**Features:**
-- 🚀 Run Task: Execute queries with real-time feedback
-- 📊 Runs: Historical run browser with quality trends
-- 🤖 Agents: Agent profiles with task affinity metrics
-- 🔧 Tools: Tool usage statistics and health
-- 🔍 Inspect Run: Full causal chain visualization (Goal → Plan → DAG → Evidence)
-- 📈 System Stats: Global metrics and tool distribution
-
-## 📁 Configuration
-
-### Agent Registry
-
-Edit `config/agents.yaml`:
-
-```yaml
-agents:
-  - id: data_agent
-    role: Data Specialist
-    capabilities: [data_retrieval, analysis]
-    allowed_tools: [retriever, summarizer]
-    constraints:
-      max_cost_per_run: 0.5
-      max_latency_ms: 5000
-```
-
-### Tool Registry
-
-Edit `config/tools.yaml`:
-
-```yaml
-tools:
-  - id: retriever
-    name: Document Retriever
-    sandbox_required: false
-    risk_tier: low
-    permissions:
-      network_access: false
-      file_write: false
-```
-
-## 🔄 Artifact Structure
-
-All decisions are stored as JSON artifacts:
-
-```
-artifacts/
-├── session/          # Cross-run session state
-├── task_type/        # Task classification results
-├── goals/            # Goal interpretation, plans, DAGs, constraints
-├── agent_profiles/   # Long-term agent performance
-├── tool_profiles/    # Tool ROI and failure stats
-├── eval/             # Quality scores and benchmarks
-└── learning/         # Policy promotion traces
-```
-
-## ✅ Verification
-
-Run the built-in benchmark:
-
-```bash
-python scripts/l5_benchmark.py
-```
-
-Expected output:
-- ✅ All tasks complete
-- ✅ Agent profiles updated
-- ✅ System stats visible
-- ✅ Artifacts generated
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-pytest tests/ -v
-
-# Run specific layer tests
-pytest tests/test_l5_full_integration.py -v
-```
-
-## 🔐 Governance
-
-### Prompt Injection Guard
-
-Automatic detection of:
-- "ignore previous instructions"
-- "system prompt:"
-- "you are now a"
-
-### Cost Guardrails
-
-Set per-session limits in `runtime/governance/l5_governance.py`:
-
-```python
-GovernanceController(cost_limit=100.0)
-```
-
-### Access Control
-
-Agents can only use tools in their `allowed_tools` list (defined in `config/agents.yaml`).
-
-## 📊 Long-Term Learning
-
-The system evolves policies based on:
-1. **Agent Task Affinity**: Tracks which agents excel at which task types
-2. **Tool ROI**: Cost vs. value contributed
-3. **Cross-Run Patterns**: SQLite-backed memory of successful/failed patterns
-4. **Auto-Promotion**: Policies with quality score > 0.9 are automatically promoted
-
-## 🛠️ Development
-
-### Add a New Agent
-
-1. Define in `config/agents.yaml`
-2. Reload registry: `python -c "from runtime.registry.config_loader import ConfigRegistry; ConfigRegistry().export_json()"`
-3. Agent is now available
-
-### Add a New Tool
-
-1. Define in `config/tools.yaml`
-2. Implement tool logic in `runtime/tooling/`
-3. Register via `ToolManager.record_usage()`
-
-## 📈 Monitoring
-
-View real-time system health:
-
-```bash
-# CLI
-python agentctl.py list agents
-
-# Web UI
-python run.py web  # Navigate to "System Stats"
-
-# API
-curl http://localhost:8000/runs
-```
-
-## 🔗 Integration
-
-### Python SDK
+### Run a Task
 
 ```python
 from runtime.l5_engine import L5Engine
 
 engine = L5Engine()
-result = engine.execute_run("What is AI?", session_id="my_session")
+result = engine.execute_run(
+    query="What is machine learning?",
+    session_id="demo_session"
+)
 
 print(f"Quality: {result['eval'].quality_score}")
 print(f"Cost: ${result['eval'].cost}")
 ```
 
-### REST API Client
+### Inspect a Run
 
 ```bash
-curl -X POST http://localhost:8000/run \
-  -H "Content-Type: application/json" \
-  -d '{"query": "What is AI?", "user_id": "alice"}'
+python agentctl.py inspect run_abc123
 ```
 
-## 🎓 Acceptance Criteria
-
-✅ **User-Facing Interfaces**: CLI, REST API, Web UI  
-✅ **Full Causal Chain**: Goal → Plan → DAG → Agent → Tool → Evidence  
-✅ **Replayability**: Any run can be inspected and replayed  
-✅ **Long-Term Learning**: Agent/tool profiles evolve over time  
-✅ **Governance**: Injection guards, cost limits, access control  
-✅ **Artifact Completeness**: All decisions recorded in JSON  
-✅ **One-Command Start**: `python run.py`  
-
-## 📝 License
-
-[Your License Here]
-
-## 🤝 Contributing
-
-Contributions welcome! The system is designed for extensibility:
-- New agents: Add to `config/agents.yaml`
-- New tools: Add to `config/tools.yaml`
-- New UI pages: Extend `workbench_ui.py`
-- New API endpoints: Extend `api_server.py`
+This shows you the **full causal chain**: Goal → Plan → DAG → Agent → Tool → Evidence.
 
 ---
 
-**System Status:** 🟢 L5 Complete  
-**Version:** L5.0  
-**Last Updated:** 2025-12-22
+## Roadmap
+
+### ✅ Shipped (L6 Certified)
+- [x] Distributed execution (control plane + workers)
+- [x] Multi-tenant isolation with budget enforcement
+- [x] Contextual bandit for strategy selection
+- [x] Offline RL with shadow mode
+- [x] Privacy-preserving meta-learning
+- [x] Full audit trail & replayability
+
+### 🚧 In Progress
+- [ ] Interactive execution graph UI (pause/resume/retry)
+- [ ] Real-time learning visualization dashboard
+- [ ] Kubernetes deployment templates
+
+### 🔮 Future (L7+)
+- [ ] Federated learning across tenants
+- [ ] Active learning for labeling optimization
+- [ ] Multi-modal agents (vision + text + audio)
+- [ ] Blockchain-based immutable audit trail
+
+---
+
+## Philosophy
+
+**Agent Engineering ≠ Prompt Engineering**
+
+Building production AI systems requires:
+1. **Explicit contracts** between components
+2. **Failure semantics** that don't rely on "retry until it works"
+3. **Governance gates** that enforce compliance, cost, and quality
+4. **Auditability** so you can answer "why did the system do that?"
+
+This system embodies those principles.
+
+**We believe:**
+- Agents should have roles, not personalities
+- Execution should be deterministic, not emergent
+- Learning should be safe, not reckless
+- Production systems should be boring, not magical
+
+---
+
+## Contributing
+
+We welcome contributions that align with the system's philosophy:
+- **New agents:** Define clear contracts in `config/agents.yaml`
+- **New tools:** Implement with explicit permission models
+- **New learning algorithms:** Must include shadow mode & approval gates
+- **UI improvements:** Focus on auditability, not aesthetics
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+---
+
+## License
+
+[MIT License](LICENSE)
+
+---
+
+## Citation
+
+If you use this system in your research or production deployments, please cite:
+
+```bibtex
+@software{agentic_delivery_os,
+  title = {Agentic Delivery OS: Production-Grade Multi-Agent Orchestration},
+  author = {Your Name},
+  year = {2025},
+  url = {https://github.com/Benjamindaoson/agentic-delivery-os}
+}
+```
+
+---
+
+## Acknowledgments
+
+This system is built on the principle that **AI systems should be engineered, not improvised**.
+
+Inspired by:
+- Production ML systems at scale (Uber, Airbnb, Netflix)
+- Formal methods in distributed systems
+- The gap between research demos and real-world deployments
+
+---
+
+**Status:** 🟢 L6 Certified — Ready for Production  
+**Last Updated:** 2025-12-23
+
+---
+
+## Join the Discussion
+
+- **Issues:** [GitHub Issues](https://github.com/Benjamindaoson/agentic-delivery-os/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/Benjamindaoson/agentic-delivery-os/discussions)
+
+**If you believe AI systems should be auditable, governable, and production-ready — not just impressive demos — this project is for you.**
+
+⭐ **Star this repo** if you think agent engineering deserves better tooling.
