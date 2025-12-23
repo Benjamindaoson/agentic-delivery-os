@@ -29,6 +29,7 @@ agents:
     enabled: true
 
 llm:
+  mode: real  # real | mock - 默认启用真实 LLM 调用
   provider: qwen  # qwen | openai
   model: qwen-turbo  # 默认模型，可通过环境变量覆盖
   timeout_sec: 20
@@ -36,4 +37,11 @@ llm:
   temperature: 0.0
   max_tokens: 512
   top_p: 1.0
+
+# 检索配置
+retrieval:
+  vector_dimension: 384
+  top_k: 5
+  min_score: 0.1
+  index_path: "artifacts/retrieval/index"
 

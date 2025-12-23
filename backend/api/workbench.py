@@ -45,6 +45,20 @@ async def create_project(name: str = Form(...)) -> Dict[str, Any]:
     os.makedirs(os.path.join(WORKBENCH_ROOT, "projects", project_id), exist_ok=True)
     return projects[project_id]
 
+
+@router.get("/projects")
+async def list_projects() -> Dict[str, Any]:
+    """列出所有项目（返回 id -> project map）"""
+    _ensure_store()
+    return _read_json(PROJECTS_PATH)
+
+
+@router.get("/runs")
+async def list_runs() -> Dict[str, Any]:
+    """列出所有 runs（返回 id -> run map）"""
+    _ensure_store()
+    return _read_json(RUNS_PATH)
+
 @router.post("/projects/{project_id}/ingest")
 async def ingest_files(project_id: str, file: UploadFile = File(...)) -> Dict[str, Any]:
     """Accept a single file upload and create an ingest run"""

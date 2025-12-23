@@ -1,22 +1,90 @@
 """
-Tool Dispatcher: 集中式工具调度入口
-参数校验、权限边界、隔离执行、可审计
+Tool Dispatcher: Industrial-Grade Tool Execution Engine
+Features:
+- Parameter validation with JSON Schema
+- Permission boundaries and sandboxing
+- Tool composition (tool pipelines)
+- Execution trace generation
+- Rollback support
 """
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Callable, Union, Tuple
 from enum import Enum
 from datetime import datetime
+from dataclasses import dataclass, field, asdict
 import json
 import os
 import subprocess
 import tempfile
 import shutil
+import hashlib
+import uuid
+
 
 class ToolPermission(str, Enum):
     """工具权限级别"""
-    READ_ONLY = "read_only"  # 只读
-    WRITE_LOCAL = "write_local"  # 仅本地写入
-    EXECUTE_SAFE = "execute_safe"  # 安全命令执行
-    NETWORK_ACCESS = "network_access"  # 网络访问（受限）
+    READ_ONLY = "read_only"
+    WRITE_LOCAL = "write_local"
+    EXECUTE_SAFE = "execute_safe"
+    NETWORK_ACCESS = "network_access"
+    TOOL_CHAIN = "tool_chain"  # Can invoke other tools
+
+
+@dataclass
+class ToolExecutionStep:
+    """Single step in a tool execution trace"""
+    step_id: str
+    tool_name: str
+    params: Dict[str, Any]
+    started_at: str
+    completed_at: Optional[str] = None
+    success: bool = False
+    output: Any = None
+    error: Optional[str] = None
+    exit_code: int = 0
+    execution_time_ms: float = 0.0
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass  
+class ToolPipeline:
+    """A pipeline of tools to execute in sequence"""
+    pipeline_id: str
+    name: str
+    steps: List[Dict[str, Any]]  # [{tool_name, params, output_mapping}]
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat())
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
+class ToolExecutionTrace:
+    """Complete trace of a tool execution or pipeline"""
+    trace_id: str
+    task_id: str
+    pipeline_id: Optional[str] = None
+    steps: List[ToolExecutionStep] = field(default_factory=list)
+    started_at: str = field(default_factory=lambda: datetime.now().isoformat())
+    completed_at: Optional[str] = None
+    success: bool = False
+    total_execution_time_ms: float = 0.0
+    outputs: Dict[str, Any] = field(default_factory=dict)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "trace_id": self.trace_id,
+            "task_id": self.task_id,
+            "pipeline_id": self.pipeline_id,
+            "steps": [s.to_dict() for s in self.steps],
+            "started_at": self.started_at,
+            "completed_at": self.completed_at,
+            "success": self.success,
+            "total_execution_time_ms": self.total_execution_time_ms,
+            "outputs": self.outputs
+        }
+
 
 class ToolResult:
     """工具执行结果"""
@@ -393,6 +461,208 @@ class ToolDispatcher:
         
         return {"success": False, "error": f"Unknown tool: {tool_name}"}
 
+    # =========================================================================
+    # TOOL COMPOSITION: Pipeline Execution
+    # =========================================================================
+    
+    async def execute_pipeline(
+        self,
+        pipeline: ToolPipeline,
+        task_id: str,
+        initial_context: Optional[Dict[str, Any]] = None
+    ) -> Tuple[ToolExecutionTrace, Dict[str, Any]]:
+        """
+        Execute a pipeline of tools in sequence.
+        
+        Args:
+            pipeline: The pipeline definition
+            task_id: Task ID for tracking
+            initial_context: Initial context/variables for the pipeline
+            
+        Returns:
+            Tuple of (execution_trace, final_outputs)
+        """
+        import time
+        pipeline_start = time.time()
+        
+        trace = ToolExecutionTrace(
+            trace_id=f"trace_{uuid.uuid4().hex[:12]}",
+            task_id=task_id,
+            pipeline_id=pipeline.pipeline_id
+        )
+        
+        context = initial_context or {}
+        final_outputs = {}
+        all_success = True
+        
+        for i, step_def in enumerate(pipeline.steps):
+            tool_name = step_def.get("tool_name")
+            params_template = step_def.get("params", {})
+            output_key = step_def.get("output_key", f"step_{i}_output")
+            continue_on_error = step_def.get("continue_on_error", False)
+            
+            # Resolve parameters from context
+            resolved_params = self._resolve_params(params_template, context)
+            
+            step_id = f"step_{i}_{tool_name}"
+            step_start = time.time()
+            
+            step = ToolExecutionStep(
+                step_id=step_id,
+                tool_name=tool_name,
+                params=resolved_params,
+                started_at=datetime.now().isoformat()
+            )
+            
+            # Execute the tool
+            result = await self.execute(tool_name, resolved_params, task_id)
+            
+            step_end = time.time()
+            step.completed_at = datetime.now().isoformat()
+            step.execution_time_ms = (step_end - step_start) * 1000
+            step.success = result.success
+            step.output = result.output
+            step.error = result.error
+            step.exit_code = result.exit_code
+            
+            trace.steps.append(step)
+            
+            # Store output in context for subsequent steps
+            context[output_key] = result.output
+            final_outputs[output_key] = result.output
+            
+            if not result.success:
+                all_success = False
+                if not continue_on_error:
+                    break
+        
+        pipeline_end = time.time()
+        trace.completed_at = datetime.now().isoformat()
+        trace.success = all_success
+        trace.total_execution_time_ms = (pipeline_end - pipeline_start) * 1000
+        trace.outputs = final_outputs
+        
+        # Save trace artifact
+        self._save_execution_trace(trace, task_id)
+        
+        return trace, final_outputs
+    
+    def _resolve_params(
+        self,
+        params_template: Dict[str, Any],
+        context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Resolve parameter templates using context variables.
+        
+        Supports:
+        - Direct values: "path": "/some/path"
+        - Context references: "content": "${step_0_output}"
+        - Nested references: "data": {"value": "${some_key}"}
+        """
+        resolved = {}
+        
+        for key, value in params_template.items():
+            resolved[key] = self._resolve_value(value, context)
+        
+        return resolved
+    
+    def _resolve_value(self, value: Any, context: Dict[str, Any]) -> Any:
+        """Resolve a single value"""
+        if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
+            # Context reference
+            ref_key = value[2:-1]
+            return context.get(ref_key, value)
+        elif isinstance(value, dict):
+            return {k: self._resolve_value(v, context) for k, v in value.items()}
+        elif isinstance(value, list):
+            return [self._resolve_value(v, context) for v in value]
+        else:
+            return value
+    
+    def create_pipeline(
+        self,
+        name: str,
+        steps: List[Dict[str, Any]]
+    ) -> ToolPipeline:
+        """Create a new tool pipeline"""
+        return ToolPipeline(
+            pipeline_id=f"pipeline_{uuid.uuid4().hex[:8]}",
+            name=name,
+            steps=steps
+        )
+    
+    def _save_execution_trace(self, trace: ToolExecutionTrace, task_id: str):
+        """Save execution trace to artifact"""
+        artifact_dir = os.path.join("artifacts", "tool_traces", task_id)
+        os.makedirs(artifact_dir, exist_ok=True)
+        
+        trace_path = os.path.join(artifact_dir, f"{trace.trace_id}.json")
+        with open(trace_path, "w", encoding="utf-8") as f:
+            json.dump(trace.to_dict(), f, indent=2, ensure_ascii=False)
+        
+        # Also append to consolidated trace file
+        consolidated_path = os.path.join("artifacts", "tool_execution_trace.json")
+        try:
+            existing = []
+            if os.path.exists(consolidated_path):
+                with open(consolidated_path, "r", encoding="utf-8") as f:
+                    existing = json.load(f) or []
+            existing.append(trace.to_dict())
+            with open(consolidated_path, "w", encoding="utf-8") as f:
+                json.dump(existing, f, indent=2, ensure_ascii=False)
+        except Exception:
+            pass
+    
+    # =========================================================================
+    # PREDEFINED PIPELINES
+    # =========================================================================
+    
+    def get_rag_ingestion_pipeline(self) -> ToolPipeline:
+        """Get predefined RAG document ingestion pipeline"""
+        return self.create_pipeline(
+            name="rag_ingestion",
+            steps=[
+                {
+                    "tool_name": "file_read",
+                    "params": {"path": "${source_path}"},
+                    "output_key": "raw_content"
+                },
+                {
+                    "tool_name": "file_write",
+                    "params": {
+                        "path": "${output_path}",
+                        "content": "${raw_content}"
+                    },
+                    "output_key": "write_result"
+                }
+            ]
+        )
+    
+    def get_artifact_generation_pipeline(self) -> ToolPipeline:
+        """Get predefined artifact generation pipeline"""
+        return self.create_pipeline(
+            name="artifact_generation",
+            steps=[
+                {
+                    "tool_name": "command_execute",
+                    "params": {
+                        "command": "mkdir",
+                        "args": ["-p", "${artifact_dir}"]
+                    },
+                    "output_key": "mkdir_result",
+                    "continue_on_error": True
+                },
+                {
+                    "tool_name": "file_write",
+                    "params": {
+                        "path": "${artifact_path}",
+                        "content": "${artifact_content}"
+                    },
+                    "output_key": "write_result"
+                }
+            ]
+        )
 
 
 

@@ -7,7 +7,7 @@ export default function ProjectsPage() {
   const [name, setName] = useState('')
 
   useEffect(() => {
-    fetch('/api/workbench/projects')
+    fetch('/api/projects')
       .then((r) => r.json())
       .then((data) => {
         // data currently stored as object map

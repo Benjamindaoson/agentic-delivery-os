@@ -1,0 +1,63 @@
+# Agent Registry Configuration
+# Define all agents with explicit roles, capabilities, and tool permissions
+
+agents:
+  - id: data_agent
+    role: Data Specialist
+    description: Handles data retrieval, processing, and analysis tasks
+    capabilities:
+      - data_retrieval
+      - data_transformation
+      - analysis
+    allowed_tools:
+      - retriever
+      - summarizer
+      - analyzer
+    constraints:
+      max_cost_per_run: 0.5
+      max_latency_ms: 5000
+    policies:
+      default_version: "1.0"
+      rollback_on_failure: true
+      auto_promote_threshold: 0.85
+
+  - id: execution_agent
+    role: Execution Coordinator
+    description: Orchestrates complex multi-step execution workflows
+    capabilities:
+      - orchestration
+      - planning
+      - coordination
+    allowed_tools:
+      - planner
+      - workflow_executor
+      - validator
+    constraints:
+      max_cost_per_run: 1.0
+      max_latency_ms: 10000
+    policies:
+      default_version: "1.0"
+      rollback_on_failure: true
+      auto_promote_threshold: 0.9
+
+  - id: reasoning_agent
+    role: Reasoning Engine
+    description: Performs deep reasoning, inference, and decision-making
+    capabilities:
+      - logical_reasoning
+      - inference
+      - decision_making
+    allowed_tools:
+      - llm_generator
+      - evidence_validator
+      - constraint_checker
+    constraints:
+      max_cost_per_run: 0.8
+      max_latency_ms: 8000
+    policies:
+      default_version: "1.0"
+      rollback_on_failure: false
+      auto_promote_threshold: 0.95
+
+
+

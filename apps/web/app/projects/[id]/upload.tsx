@@ -10,7 +10,7 @@ export default function Upload({ projectId }: { projectId: string }) {
     const form = new FormData()
     form.append("file", file)
     setStatus("Uploading...")
-    const res = await fetch(`/api/workbench/projects/${projectId}/ingest`, { method: "POST", body: form })
+    const res = await fetch(`/api/projects/${projectId}/ingest`, { method: "POST", body: form })
     const j = await res.json()
     setStatus(`Completed: ${j.id}`)
   }

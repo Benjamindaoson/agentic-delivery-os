@@ -9,7 +9,7 @@ export default function ChatPage() {
   async function run() {
     const form = new FormData()
     form.append("query", query)
-    const res = await fetch(`/api/workbench/projects/${projectId}/query`, { method: "POST", body: form })
+    const res = await fetch(`/api/projects/${projectId}/query`, { method: "POST", body: form })
     const j = await res.json()
     setAnswer(j)
   }

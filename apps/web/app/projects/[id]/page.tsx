@@ -12,13 +12,13 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   const [lastAnswer, setLastAnswer] = useState<any>(null)
 
   useEffect(() => {
-    fetch("/api/workbench/projects")
+    fetch("/api/projects")
       .then((r) => r.json())
       .then((data) => {
         const p = data[projectId]
         setProject(p)
       })
-    fetch("/api/workbench/runs")
+    fetch("/api/runs")
       .then((r) => r.json())
       .then((data) => {
         const list = data ? Object.values(data) : []
@@ -31,7 +31,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
     if (!file) return
     const form = new FormData()
     form.append("file", file)
-    const res = await fetch(`/api/workbench/projects/${projectId}/ingest`, { method: "POST", body: form })
+    const res = await fetch(`/api/projects/${projectId}/ingest`, { method: "POST", body: form })
     const r = await res.json()
     setRuns((s) => [r, ...s])
   }
@@ -39,7 +39,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   async function runQuery() {
     const form = new FormData()
     form.append("query", query)
-    const res = await fetch(`/api/workbench/projects/${projectId}/query`, { method: "POST", body: form })
+    const res = await fetch(`/api/projects/${projectId}/query`, { method: "POST", body: form })
     const r = await res.json()
     setLastAnswer(r)
     setRuns((s) => [r, ...s])

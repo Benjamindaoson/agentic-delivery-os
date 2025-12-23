@@ -1,25 +1,4 @@
-# Governance Layer: 治理层与可解释层
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+"""
+Governance & Control Layer: Access control, guards, and guardrails.
+Provides security, safety, and cost governance.
+"""

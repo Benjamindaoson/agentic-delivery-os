@@ -23,6 +23,13 @@ from runtime.decision_agents.candidate_ranking_agent import CandidateRankingAgen
 from runtime.decision_agents.dialogue_strategy_agent import DialogueStrategyAgent
 from runtime.decision_agents.decision_context import DecisionContext
 from runtime.platform.event_stream import EventStream
+from runtime.learning.learning_controller import LearningController
+from runtime.learning.l5_pipeline import maybe_train_and_rollout
+from runtime.planning.llm_planner import get_llm_planner, TaskComplexity
+from runtime.execution_graph.evolvable_dag import EvolvableDAG, DAGNode, MutationType
+from learning.structural_learning import get_structural_learner, StructuralFeatureExtractor, StructuralRewardComputer, StructuralCreditAssigner
+from learning.tenant_learning import get_tenant_learning_controller
+from learning.unified_policy import TaskSuccessRewardComputer
 from datetime import datetime
 import uuid
 
@@ -56,6 +63,25 @@ class ExecutionEngine:
         # Phase 4: 平台层集成
         self.trace_store = TraceStore()
         self.event_stream = EventStream(self.trace_store)
+        
+        # Learning v1: 自动学习控制器（完全后台化，对用户无感）
+        self.learning_controller = LearningController(
+            trace_store=self.trace_store,
+            policy_dir="artifacts/policies",
+            min_runs=500,
+            max_failure_rate=0.15,
+            min_runs_between_training=1000
+        )
+        
+        # Industrial v2: New components
+        self.llm_planner = get_llm_planner()
+        self.structural_learner = get_structural_learner()
+        self.tenant_learning = get_tenant_learning_controller()
+        self.reward_computer = TaskSuccessRewardComputer()
+        self.structural_reward_computer = StructuralRewardComputer()
+        self.credit_assigner = StructuralCreditAssigner()
+        self.current_evolvable_dag: Optional[EvolvableDAG] = None
+        
         self.event_counter = 0  # 用于生成 event_id
     
     async def initialize(self):
@@ -145,29 +171,21 @@ class ExecutionEngine:
         try:
             # 获取任务上下文
             context = await self.state_manager.get_task_context(task_id)
+            spec = context.get("spec", {})
+            user_input = context.get("user_input") or spec.get("audience") or ""
+            
             decision_context = self._run_decision_layer(context, task_id)
             self.decision_context = decision_context
             context["decision_context"] = decision_context.to_dict()
             await self.state_manager.update_task_context(task_id, context)
+            
+            # Initial governance decision
             total_cost = 0.0
             budget_limit = float(
-                self.runtime_config.get("budget", {}).get("default_max_cost", 
-                                                          self.runtime_config.get("budget", {}).get("default_max_cost", 1000.0))
+                self.runtime_config.get("budget", {}).get("default_max_cost", 1000.0)
             )
             llm_fallback_count = 0
             
-            # 获取上次 Evaluation 反馈（用于回流）
-            last_evaluation_feedback = {
-                "failed": context.get("last_evaluation_failed", False),
-                "failure_type": context.get("last_failure_type"),
-                "blame_hint": context.get("last_blame_hint")
-            }
-            
-            # 初始治理决策（用于选择计划）
-            initial_signals = {
-                "budget_remaining": budget_limit - total_cost,
-                "risk_level": "low"
-            }
             initial_gov_decision = self.governance_engine.make_decision(
                 reports=[],
                 total_cost=total_cost,
@@ -175,48 +193,127 @@ class ExecutionEngine:
                 llm_fallback_count=llm_fallback_count
             )
             
-            # 选择执行计划（规则驱动）
-            selected_plan = self.plan_selector.select_plan(
+            # 1. Goal-driven Planning (P0-1 Upgrade)
+            goal_text = context.get("query") or spec.get("goal") or user_input
+            decomposition, planning_rationale = await self.llm_planner.plan(
+                run_id=task_id,
+                goal=goal_text,
+                context=context
+            )
+            context["goal_decomposition"] = decomposition.to_dict()
+            context["planning_rationale"] = planning_rationale.to_dict()
+            
+            # 2. Initialize Evolvable DAG (P0-2 Upgrade)
+            self.current_evolvable_dag = EvolvableDAG(
+                dag_id=f"dag_{task_id}",
+                run_id=task_id
+            )
+            
+            # Convert subgoals to DAG nodes
+            for sg in decomposition.subgoals:
+                node = DAGNode(
+                    node_id=sg.subgoal_id,
+                    agent_name=sg.assigned_agent,
+                    description=sg.description,
+                    dependencies=sg.dependencies,
+                    cost_estimate=sg.estimated_cost,
+                    latency_estimate_ms=sg.estimated_latency_ms,
+                    risk_level=sg.risk_level
+                )
+                # Map to current agents
+                if node.agent_name not in self.agents and node.agent_name.replace("Agent", "") in self.agents:
+                    node.agent_name = node.agent_name.replace("Agent", "")
+                
+                self.current_evolvable_dag.add_node(node)
+            
+            # Reconstruct edges from dependencies
+            for sg in decomposition.subgoals:
+                for dep_id in sg.dependencies:
+                    self.current_evolvable_dag.edges.add((dep_id, sg.subgoal_id))
+            
+            # Apply structural policy recommendation (with fallback)
+            try:
+                from learning.structural_learning import get_structural_learner
+
+                structural_learner = get_structural_learner()
+                recommended = structural_learner.recommend_structure(
+                    task_type=goal.goal_type.value if hasattr(goal, "goal_type") else "general",
+                    available_templates=list(self.current_evolvable_dag.nodes.keys()),
+                    complexity=goal.goal_type.value if hasattr(goal, "goal_type") else "general",
+                )
+                if recommended and recommended.get("recommended_agents"):
+                    # Reorder nodes to follow recommended agent sequence when possible
+                    new_order = []
+                    for agent_name in recommended["recommended_agents"]:
+                        for n in self.current_evolvable_dag.nodes.values():
+                            if n.agent_name == agent_name and n.node_id not in new_order:
+                                new_order.append(n.node_id)
+                    # Append remaining nodes
+                    for n in self.current_evolvable_dag.nodes.values():
+                        if n.node_id not in new_order:
+                            new_order.append(n.node_id)
+                    self.current_evolvable_dag.reorder_nodes(new_order, reason="structural_policy_applied")
+                    context["structural_policy_applied"] = True
+                    context["structural_policy_confidence"] = recommended.get("confidence", 0.0)
+                else:
+                    context["structural_policy_applied"] = False
+            except Exception:
+                context["structural_policy_applied"] = False
+
+            # Initial signals for execution
+            total_cost = 0.0
+            budget_limit = float(
+                self.runtime_config.get("budget", {}).get("default_max_cost", 1000.0)
+            )
+            
+            # Get executable nodes from the dynamic DAG
+            current_signals = {
+                "budget_remaining": budget_limit,
+                "risk_level": "low"
+            }
+            executable_nodes = self.current_evolvable_dag.get_executable_order(current_signals)
+            
+            # 记录计划选择（兼容旧版审计）
+            self.current_plan = selected_plan = self.plan_selector.select_plan(
                 governance_decision=initial_gov_decision,
-                signals=initial_signals,
-                last_evaluation_feedback=last_evaluation_feedback if last_evaluation_feedback["failed"] else None
+                signals=current_signals
             )
-            self.current_plan = selected_plan
-            
-            # 记录计划选择
-            selection_reasoning = self.plan_selector.get_selection_reasoning(
-                selected_plan, initial_gov_decision, initial_signals, last_evaluation_feedback if last_evaluation_feedback["failed"] else None
-            )
-            self.plan_selection_history.append(selection_reasoning)
-            
-            # 根据计划执行节点（条件 DAG）
-            executable_nodes = selected_plan.get_executable_nodes(initial_signals)
             
             # 执行计划中的节点
             for node in executable_nodes:
                 # 更新信号（用于条件评估）
                 current_signals = {
                     "budget_remaining": budget_limit - total_cost,
-                    "risk_level": "low",
-                    "last_evaluation_failed": last_evaluation_feedback.get("failed", False),
-                    "last_failure_type": last_evaluation_feedback.get("failure_type", "")
+                    "risk_level": node.risk_level,
+                    "last_evaluation_failed": context.get("last_evaluation_failed", False),
+                    "last_failure_type": context.get("last_failure_type", "")
                 }
                 
                 # 检查节点条件（动态条件评估）
-                if not node.condition.evaluate(current_signals):
+                if not node.can_execute(current_signals):
                     # 条件不满足，跳过节点
+                    self.current_evolvable_dag.skip_node(node.node_id, "condition_not_met")
                     continue
                 
                 # 执行节点对应的 Agent
-                agent_result = await self._execute_agent(node.agent_name, context, task_id)
-                agent_report = AgentExecutionReport.from_agent_result(node.agent_name, agent_result)
+                node.status = "running"
+                agent_name = node.agent_name
+                if agent_name not in self.agents:
+                    # Fallback to Execution if agent not found
+                    agent_name = "Execution"
+                
+                agent_result = await self._execute_agent(agent_name, context, task_id)
+                node.status = "completed" if agent_result.get("decision") not in ["terminate", "failed"] else "failed"
+                
+                agent_report = AgentExecutionReport.from_agent_result(agent_name, agent_result)
                 self.agent_reports.append(agent_report)
                 
                 # Phase 4: 发送 Agent 执行事件
                 self._emit_event(task_id, "agent_report", {
-                    "agent_name": node.agent_name,
+                    "agent_name": agent_name,
+                    "node_id": node.node_id,
                     "decision": agent_result.get("decision"),
-                    "status": "success" if agent_result.get("decision") not in ["terminate", "failed"] else "error"
+                    "status": "success" if node.status == "completed" else "error"
                 })
                 
                 if agent_result.get("llm_result", {}).get("fallback_used"):
@@ -347,6 +444,9 @@ class ExecutionEngine:
                 reason="All plan nodes executed successfully",
                 progress={"currentAgent": "All", "currentStep": "completed"}
             )
+            
+            # Learning v1: 自动触发学习流程（完全后台化，对用户无感）
+            self._trigger_learning_if_needed(task_id)
         except Exception as e:
             # 执行失败，状态迁移到 FAILED（包含 traceback 以便审计）
             import traceback as _tb
@@ -363,6 +463,9 @@ class ExecutionEngine:
                 await self._generate_artifacts(task_id, await self.state_manager.get_task_context(task_id), failed=True, error=str(e))
             except:
                 pass
+            
+            # Learning v1: 失败的 run 也参与学习（帮助优化 failure_rate）
+            self._trigger_learning_if_needed(task_id)
     
     async def _execute_agent(self, agent_name: str, context: Dict[str, Any], task_id: str) -> Dict[str, Any]:
         """执行单个 Agent 并记录 trace（包含 LLM 信息）"""
@@ -649,3 +752,124 @@ class ExecutionEngine:
             payload=payload,
         )
         self.event_stream.emit_event(task_id, event)
+    
+    def _trigger_learning_if_needed(self, task_id: str):
+        """
+        Industrial v2 Learning Closure:
+        1. Finalize trace to store
+        2. Compute structural rewards and credit assignment
+        3. Update StructuralLearner
+        4. Update TenantLearningController
+        5. Trigger L5 rollout pipeline
+        """
+        try:
+            # Step 1: Finalize trace
+            self._finalize_trace_to_store(task_id)
+            
+            # Step 2: Get context and result
+            import os, json
+            trace_path = os.path.join("artifacts", "rag_project", task_id, "system_trace.json")
+            if not os.path.exists(trace_path):
+                return
+            
+            with open(trace_path, "r", encoding="utf-8") as f:
+                trace_data = json.load(f)
+            
+            # Step 3: Compute Reward (P3 Upgrade)
+            outcome = {
+                "success": any(entry["status"] == "success" for entry in self.execution_trace if entry["agent"] == "Execution"),
+                "quality_score": next((entry["output"].get("summary", {}).get("quality_score", 0.5) 
+                                     for entry in self.execution_trace if entry["agent"] == "Evaluation"), 0.5),
+                "cost": sum(r.cost_impact for r in self.agent_reports),
+                "latency_ms": sum(entry.get("latency_ms", 0) for entry in self.execution_trace if "latency_ms" in entry)
+            }
+            
+            # Create structural feature vector
+            if self.current_evolvable_dag:
+                nodes_list = [n.to_dict() for n in self.current_evolvable_dag.nodes.values()]
+                edges_list = list(self.current_evolvable_dag.edges)
+                structure_vector = StructuralFeatureExtractor.extract(nodes_list, edges_list)
+                
+                # Compute structural reward
+                reward = self.structural_reward_computer.compute(
+                    run_id=task_id,
+                    dag_id=self.current_evolvable_dag.dag_id,
+                    execution_result=outcome,
+                    dag_features=structure_vector
+                )
+                
+                # Assign credit
+                node_results = {entry["agent"]: {"success": entry["status"] == "success", "quality": 0.5} 
+                               for entry in self.execution_trace}
+                credit_assignment = self.credit_assigner.assign(
+                    run_id=task_id,
+                    dag_nodes=nodes_list,
+                    dag_edges=edges_list,
+                    node_execution_results=node_results,
+                    final_reward=reward.total_reward
+                )
+                
+                # Update learner
+                task_type = trace_data.get("decision_context", {}).get("intent", {}).get("category", "general")
+                self.structural_learner.record_execution(
+                    task_type=task_type,
+                    structure_vector=structure_vector,
+                    reward=reward,
+                    credit_assignment=credit_assignment
+                )
+                
+                # Step 4: Tenant-level Learning (P1-2 Upgrade)
+                tenant_id = trace_data.get("final_context", {}).get("tenant_id", "default")
+                self.tenant_learning.record_execution(
+                    tenant_id=tenant_id,
+                    task_type=task_type,
+                    strategy_id=self.current_evolvable_dag.dag_id,
+                    agents_used=[entry["agent"] for entry in self.execution_trace],
+                    success=outcome["success"],
+                    cost=outcome["cost"],
+                    latency_ms=outcome["latency_ms"],
+                    quality_score=outcome["quality_score"]
+                )
+            
+            # Step 5: L5 Pipeline (Rollout)
+            l5_summary = maybe_train_and_rollout(
+                trace_store=self.trace_store,
+                execution_engine=self
+            )
+            
+        except Exception as e:
+            # Learning failure should not block system completion
+            print(f"Learning closure error: {e}")
+            pass
+    
+    def _finalize_trace_to_store(self, task_id: str):
+        """
+        将当前 run 的完整 trace 同步到 TraceStore。
+        ExecutionEngine 已在 artifacts/rag_project/{task_id}/system_trace.json 中写入 trace，
+        这里需要：
+        1. 读取 system_trace.json
+        2. 构建 TraceSummary 并保存到 TraceStore
+        3. 索引任务（供后续查询使用）
+        """
+        import os
+        import json
+        
+        try:
+            # 读取 system_trace.json
+            trace_path = os.path.join("artifacts", "rag_project", task_id, "system_trace.json")
+            if not os.path.exists(trace_path):
+                return
+            
+            with open(trace_path, "r", encoding="utf-8") as f:
+                trace_data = json.load(f)
+            
+            # 构建 summary 并保存
+            summary = self.trace_store.build_summary_from_trace(task_id, trace_data)
+            self.trace_store.save_summary(summary)
+            
+            # 索引任务
+            self.trace_store.index_trace(task_id, trace_data)
+        
+        except Exception:
+            # 如果同步失败，不影响主流程
+            pass

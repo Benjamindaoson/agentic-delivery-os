@@ -8,11 +8,11 @@ export default function RunPage({ params }: { params: { id: string } }) {
   const [report, setReport] = useState<any>(null)
 
   useEffect(() => {
-    fetch(`/api/workbench/runs/${runId}`).then((r) => r.json()).then(setRun)
+    fetch(`/api/runs/${runId}`).then((r) => r.json()).then(setRun)
   }, [runId])
 
   async function doReplay() {
-    const res = await fetch(`/api/workbench/runs/${runId}/replay`, { method: "POST" })
+    const res = await fetch(`/api/runs/${runId}/replay`, { method: "POST" })
     const j = await res.json()
     setReport(j)
   }

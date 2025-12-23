@@ -1,0 +1,118 @@
+# Tool Registry Configuration
+# Define all tools with explicit permissions, sandbox requirements, and risk tiers
+
+tools:
+  - id: retriever
+    name: Document Retriever
+    description: Retrieves relevant documents from knowledge base
+    type: retrieval
+    sandbox_required: false
+    has_side_effects: false
+    risk_tier: low
+    resource_limits:
+      max_memory_mb: 512
+      max_timeout_sec: 30
+    permissions:
+      network_access: false
+      file_write: false
+      external_api: true
+    cost_model:
+      base_cost: 0.005
+      per_doc_cost: 0.001
+
+  - id: summarizer
+    name: Content Summarizer
+    description: Generates concise summaries from long-form content
+    type: generation
+    sandbox_required: false
+    has_side_effects: false
+    risk_tier: low
+    resource_limits:
+      max_memory_mb: 1024
+      max_timeout_sec: 60
+    permissions:
+      network_access: true
+      file_write: false
+      external_api: true
+    cost_model:
+      base_cost: 0.01
+      per_token_cost: 0.00001
+
+  - id: llm_generator
+    name: LLM Generator
+    description: General-purpose language model for generation tasks
+    type: generation
+    sandbox_required: false
+    has_side_effects: false
+    risk_tier: medium
+    resource_limits:
+      max_memory_mb: 2048
+      max_timeout_sec: 120
+    permissions:
+      network_access: true
+      file_write: false
+      external_api: true
+    cost_model:
+      base_cost: 0.02
+      per_token_cost: 0.00002
+
+  - id: planner
+    name: Task Planner
+    description: Decomposes high-level goals into executable steps
+    type: planning
+    sandbox_required: false
+    has_side_effects: false
+    risk_tier: low
+    resource_limits:
+      max_memory_mb: 512
+      max_timeout_sec: 45
+    permissions:
+      network_access: false
+      file_write: false
+      external_api: false
+    cost_model:
+      base_cost: 0.003
+      per_step_cost: 0.001
+
+  - id: analyzer
+    name: Data Analyzer
+    description: Performs statistical and pattern analysis on data
+    type: analysis
+    sandbox_required: true
+    has_side_effects: false
+    risk_tier: medium
+    resource_limits:
+      max_memory_mb: 4096
+      max_timeout_sec: 300
+    permissions:
+      network_access: false
+      file_write: true
+      external_api: false
+    cost_model:
+      base_cost: 0.015
+      per_mb_cost: 0.0001
+
+  - id: external_api_connector
+    name: External API Connector
+    description: Connects to external APIs with authentication
+    type: integration
+    sandbox_required: true
+    has_side_effects: true
+    risk_tier: high
+    resource_limits:
+      max_memory_mb: 1024
+      max_timeout_sec: 90
+    permissions:
+      network_access: true
+      file_write: false
+      external_api: true
+    cost_model:
+      base_cost: 0.02
+      per_request_cost: 0.005
+    auth_required: true
+    rate_limit:
+      requests_per_minute: 60
+      burst_size: 10
+
+
+
