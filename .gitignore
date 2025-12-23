@@ -6,6 +6,7 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 ENV/
 *.egg-info/
 dist/
@@ -48,7 +49,7 @@ Thumbs.db
 artifacts/
 runtime/tools/sandbox/
 trace_store/
-*.json
+# *.json  # Commented out - too broad, blocks package.json etc.
 
 
 

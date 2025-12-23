@@ -1,0 +1,23 @@
+[
+  {
+    "task_id": "T1",
+    "query": "What is Agentic OS?",
+    "difficulty": "easy",
+    "expected_output_fragment": "multi-agent",
+    "ground_truth_context": null
+  },
+  {
+    "task_id": "T2",
+    "query": "How to implement L5 memory?",
+    "difficulty": "medium",
+    "expected_output_fragment": "SQLite",
+    "ground_truth_context": null
+  },
+  {
+    "task_id": "T3",
+    "query": "Complex RAG with cross-run learning",
+    "difficulty": "hard",
+    "expected_output_fragment": "policy versioning",
+    "ground_truth_context": null
+  }
+]

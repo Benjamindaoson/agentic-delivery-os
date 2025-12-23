@@ -1,0 +1,23 @@
+{
+  "metrics": {
+    "total_runs": 16,
+    "total_sessions": 0,
+    "total_cost": 0.58,
+    "total_latency_ms": 9000.0,
+    "successful_runs": 14,
+    "failed_runs": 2,
+    "avg_success_rate": 0.875,
+    "avg_cost_per_run": 0.03,
+    "avg_latency_per_run": 1500.0,
+    "avg_quality_score": 0.6202222222222221,
+    "runs_today": 6,
+    "runs_this_week": 0,
+    "runs_this_month": 0,
+    "last_updated": "2025-12-22T09:55:21.927447"
+  },
+  "policy_stats": {},
+  "tool_usage_stats": {
+    "retriever": 10,
+    "summarizer": 10
+  }
+}
