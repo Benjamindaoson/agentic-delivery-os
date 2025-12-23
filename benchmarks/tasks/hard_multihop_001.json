@@ -1,0 +1,33 @@
+{
+  "task_id": "hard_multihop_001",
+  "name": "Multi-hop Reasoning",
+  "description": "Requires connecting information across sources",
+  "category": "multi_hop",
+  "difficulty": "hard",
+  "input_data": {
+    "query": "Who is the CEO of the company that acquired Twitter?",
+    "context": [
+      "Twitter was acquired by X Corp in 2023.",
+      "X Corp is led by Elon Musk as CEO."
+    ]
+  },
+  "expected_output": {
+    "answer": "Elon Musk"
+  },
+  "evaluation_criteria": [
+    {
+      "type": "contains",
+      "value": "Elon Musk",
+      "weight": 0.8
+    },
+    {
+      "type": "reasoning_chain",
+      "weight": 0.2
+    }
+  ],
+  "max_cost": 0.3,
+  "max_latency_ms": 20000,
+  "min_quality": 0.7,
+  "version": "1.0",
+  "created_at": "2025-12-22T09:19:35.038694"
+}

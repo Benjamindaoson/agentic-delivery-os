@@ -1,0 +1,128 @@
+{
+  "agent_id": "l5_agent",
+  "total_runs": 19,
+  "total_successes": 0,
+  "total_failures": 19,
+  "overall_success_rate": 0.0,
+  "success_patterns": [],
+  "failure_patterns": [
+    {
+      "pattern_id": "retrieve::generator,reranker,retriever",
+      "goal_type": "retrieve",
+      "tool_sequence": [
+        "retriever",
+        "generator",
+        "reranker"
+      ],
+      "failure_count": 12,
+      "failure_reasons": [
+        "unknown"
+      ],
+      "avg_attempted_cost": 0.0,
+      "last_seen": "2025-12-22T10:25:01.616099"
+    },
+    {
+      "pattern_id": "analyze::generator,reranker,retriever",
+      "goal_type": "analyze",
+      "tool_sequence": [
+        "retriever",
+        "generator",
+        "reranker"
+      ],
+      "failure_count": 4,
+      "failure_reasons": [
+        "unknown"
+      ],
+      "avg_attempted_cost": 0.0,
+      "last_seen": "2025-12-22T10:25:01.278576"
+    },
+    {
+      "pattern_id": "summarize::generator,reranker,retriever",
+      "goal_type": "summarize",
+      "tool_sequence": [
+        "retriever",
+        "generator",
+        "reranker"
+      ],
+      "failure_count": 1,
+      "failure_reasons": [
+        "unknown"
+      ],
+      "avg_attempted_cost": 0.0,
+      "last_seen": "2025-12-22T10:25:00.889512"
+    },
+    {
+      "pattern_id": "build::generator,reranker,retriever",
+      "goal_type": "build",
+      "tool_sequence": [
+        "retriever",
+        "generator",
+        "reranker"
+      ],
+      "failure_count": 1,
+      "failure_reasons": [
+        "unknown"
+      ],
+      "avg_attempted_cost": 0.0,
+      "last_seen": "2025-12-22T10:25:00.937978"
+    },
+    {
+      "pattern_id": "qa::generator,reranker,retriever",
+      "goal_type": "qa",
+      "tool_sequence": [
+        "retriever",
+        "generator",
+        "reranker"
+      ],
+      "failure_count": 1,
+      "failure_reasons": [
+        "unknown"
+      ],
+      "avg_attempted_cost": 0.0,
+      "last_seen": "2025-12-22T10:25:01.379167"
+    }
+  ],
+  "tool_preferences": [
+    {
+      "tool_id": "retriever",
+      "usage_count": 19,
+      "success_rate": 0.0,
+      "avg_quality_contribution": 0.6349736842105265,
+      "preferred_for_goal_types": []
+    },
+    {
+      "tool_id": "generator",
+      "usage_count": 19,
+      "success_rate": 0.0,
+      "avg_quality_contribution": 0.6349736842105265,
+      "preferred_for_goal_types": []
+    },
+    {
+      "tool_id": "reranker",
+      "usage_count": 19,
+      "success_rate": 0.0,
+      "avg_quality_contribution": 0.6349736842105265,
+      "preferred_for_goal_types": []
+    }
+  ],
+  "cost_stats": {
+    "min": 0.06,
+    "max": 0.06,
+    "avg": 0.06000000000000003,
+    "total": 1.1400000000000006
+  },
+  "latency_stats": {
+    "min": 2700.0,
+    "max": 2700.0,
+    "avg": 2700.0
+  },
+  "goal_type_affinity": {
+    "retrieve": 0.0,
+    "analyze": 0.0,
+    "summarize": 0.0,
+    "build": 0.0,
+    "qa": 0.0
+  },
+  "learned_heuristics": [],
+  "last_updated": "2025-12-22T10:25:01.617135"
+}

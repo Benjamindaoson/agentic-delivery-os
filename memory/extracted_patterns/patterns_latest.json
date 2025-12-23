@@ -1,0 +1,51 @@
+[
+  {
+    "pattern_type": "goal_performance",
+    "goal_type": "unknown",
+    "sample_size": 11,
+    "success_rate": 1.0,
+    "avg_quality": 0.92,
+    "avg_cost": 0.039999999999999994,
+    "confidence": 1.0,
+    "extracted_at": "2025-12-22T10:25:02.580521"
+  },
+  {
+    "pattern_type": "tool_usage_frequency",
+    "tool_counts": {
+      "retriever": 6,
+      "llm_generator": 6
+    },
+    "most_common_tools": [
+      "retriever",
+      "llm_generator"
+    ],
+    "extracted_at": "2025-12-22T10:25:02.580521"
+  },
+  {
+    "pattern_type": "success_failure_analysis",
+    "total_runs": 35,
+    "success_count": 11,
+    "failure_count": 24,
+    "success_characteristics": {
+      "avg_latency_ms": 1200.0,
+      "common_task_types": [
+        "rag_qa",
+        "general_task",
+        "generation"
+      ]
+    },
+    "failure_characteristics": {
+      "avg_latency_ms": 0.0,
+      "common_task_types": []
+    },
+    "extracted_at": "2025-12-22T10:25:02.580521"
+  },
+  {
+    "pattern_type": "cost_optimization",
+    "avg_efficiency_score": 23.0,
+    "most_efficient_task_type": "rag_qa",
+    "sample_size": 11,
+    "recommendation": "Focus on rag_qa tasks for best cost/quality ratio",
+    "extracted_at": "2025-12-22T10:25:02.580521"
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "defaultAction": "SCMP_ACT_ERRNO",
+  "syscalls": [
+    {
+      "names": ["read", "write", "exit", "futex", "clock_gettime", "getpid"],
+      "action": "SCMP_ACT_ALLOW"
+    }
+  ]
+}
+

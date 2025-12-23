@@ -1,0 +1,42 @@
+{
+  "task_id": "expert_reasoning_001",
+  "name": "Complex Analysis",
+  "description": "Requires expert-level reasoning",
+  "category": "reasoning",
+  "difficulty": "expert",
+  "input_data": {
+    "query": "Analyze the trade-offs between microservices and monolithic architecture for a startup with limited resources",
+    "context": "The startup has 5 developers and needs to launch in 3 months."
+  },
+  "expected_output": null,
+  "evaluation_criteria": [
+    {
+      "type": "mentions",
+      "value": "scalability",
+      "weight": 0.2
+    },
+    {
+      "type": "mentions",
+      "value": "complexity",
+      "weight": 0.2
+    },
+    {
+      "type": "mentions",
+      "value": "time to market",
+      "weight": 0.2
+    },
+    {
+      "type": "recommendation_present",
+      "weight": 0.2
+    },
+    {
+      "type": "reasoning_quality",
+      "weight": 0.2
+    }
+  ],
+  "max_cost": 0.5,
+  "max_latency_ms": 45000,
+  "min_quality": 0.8,
+  "version": "1.0",
+  "created_at": "2025-12-22T09:19:35.038694"
+}

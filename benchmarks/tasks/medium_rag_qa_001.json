@@ -1,0 +1,33 @@
+{
+  "task_id": "medium_rag_qa_001",
+  "name": "Multi-fact Question",
+  "description": "Answer requiring multiple facts",
+  "category": "rag_qa",
+  "difficulty": "medium",
+  "input_data": {
+    "query": "Compare the populations of Tokyo and New York",
+    "context": "Tokyo has approximately 14 million people. New York City has about 8.3 million residents."
+  },
+  "expected_output": null,
+  "evaluation_criteria": [
+    {
+      "type": "contains",
+      "value": "14 million",
+      "weight": 0.4
+    },
+    {
+      "type": "contains",
+      "value": "8.3 million",
+      "weight": 0.4
+    },
+    {
+      "type": "mentions_comparison",
+      "weight": 0.2
+    }
+  ],
+  "max_cost": 0.5,
+  "max_latency_ms": 30000,
+  "min_quality": 0.75,
+  "version": "1.0",
+  "created_at": "2025-12-22T09:19:35.038694"
+}

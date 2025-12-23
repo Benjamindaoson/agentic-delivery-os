@@ -1,0 +1,26 @@
+{
+  "task_id": "easy_rag_qa_001",
+  "name": "Simple Factual Question",
+  "description": "Answer a simple factual question",
+  "category": "rag_qa",
+  "difficulty": "easy",
+  "input_data": {
+    "query": "What is the capital of France?",
+    "context": "France is a country in Western Europe. Its capital is Paris."
+  },
+  "expected_output": {
+    "answer": "Paris"
+  },
+  "evaluation_criteria": [
+    {
+      "type": "contains",
+      "value": "Paris",
+      "weight": 1.0
+    }
+  ],
+  "max_cost": 0.1,
+  "max_latency_ms": 5000,
+  "min_quality": 0.7,
+  "version": "1.0",
+  "created_at": "2025-12-22T09:19:35.038694"
+}

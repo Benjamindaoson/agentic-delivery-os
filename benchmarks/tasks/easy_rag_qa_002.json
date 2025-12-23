@@ -1,0 +1,26 @@
+{
+  "task_id": "easy_rag_qa_002",
+  "name": "Date Extraction",
+  "description": "Extract a date from context",
+  "category": "rag_qa",
+  "difficulty": "easy",
+  "input_data": {
+    "query": "When was the company founded?",
+    "context": "Acme Corp was founded in 1995 by John Smith."
+  },
+  "expected_output": {
+    "answer": "1995"
+  },
+  "evaluation_criteria": [
+    {
+      "type": "contains",
+      "value": "1995",
+      "weight": 1.0
+    }
+  ],
+  "max_cost": 0.5,
+  "max_latency_ms": 30000,
+  "min_quality": 0.7,
+  "version": "1.0",
+  "created_at": "2025-12-22T09:19:35.038694"
+}
